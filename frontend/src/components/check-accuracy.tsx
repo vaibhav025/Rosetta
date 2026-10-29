@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { errorText } from "@/lib/errors";
 import { Button } from "./button";
 import { formatScore } from "./confidence";
-import { CheckIcon, CloseIcon } from "./icons";
+import { CloseIcon, SuccessCheck } from "./icons";
 import { Spinner } from "./spinner";
 
 const STEPS: { key: api.CheckStep["key"]; label: string }[] = [
@@ -32,8 +32,8 @@ function useCountUp(target: number | null) {
     let frame = 0;
     const start = performance.now();
     const tick = (t: number) => {
-      const p = Math.min(1, (t - start) / 900);
-      setN(Math.round(target * (1 - (1 - p) ** 3)));
+      const p = Math.min(1, (t - start) / 1600);
+      setN(Math.round(target * (1 - (1 - p) ** 4)));
       if (p < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -117,7 +117,7 @@ export function CheckAccuracy({
               <Dialog.Description className="mt-1 t-small text-fg-2">Every claim in this explanation, tested against the real change.</Dialog.Description>
             </div>
             <Dialog.Close className="press -mt-1 -mr-2 grid size-10 place-items-center rounded-sm text-fg-2 hover:bg-surface-2" aria-label="Close">
-              <CloseIcon />
+              <CloseIcon className="ico" />
             </Dialog.Close>
           </div>
 
@@ -132,7 +132,7 @@ export function CheckAccuracy({
                     ) : st.state === "running" ? (
                       <Spinner className="text-fg-2" />
                     ) : st.state === "pass" ? (
-                      <CheckIcon className="text-(--risk-low)" />
+                      <SuccessCheck className="text-(--risk-low)" />
                     ) : (
                       <span className="grid size-5 place-items-center rounded-full bg-[color-mix(in_srgb,var(--risk-medium)_16%,transparent)] text-[11px] font-bold text-(--risk-medium)">!</span>
                     )}
@@ -164,7 +164,7 @@ export function CheckAccuracy({
                     <span className="block t-small font-semibold text-fg-1">Not scored</span>
                   ) : (
                     <span>
-                      <span className="block font-display text-[1.75rem] leading-none font-semibold text-fg-1 tabular-nums">{formatScore(shown)}</span>
+                      <span className="score-num block font-display text-[2.25rem] leading-none font-semibold text-fg-1 tabular-nums">{formatScore(shown)}</span>
                       <span className="mt-1 block t-micro text-fg-3">match with the code</span>
                     </span>
                   )}

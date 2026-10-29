@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { Fragment } from "react";
-import { CheckIcon } from "./icons";
+import { SuccessCheck } from "./icons";
 import { Spinner } from "./spinner";
 
 const enter = {
@@ -45,7 +45,7 @@ export function LoadingStory({ title, findings, stage }: { title?: string; findi
       <ul className="mt-4 grid gap-2">
         {findings.map((line, i) => (
           <motion.li key={i} {...enter} className="flex items-center gap-3 t-body text-fg-1">
-            <CheckIcon className="shrink-0 text-steel" />
+            <SuccessCheck className="text-accent-ink" />
             <span>
               <InlineCode text={line} />
             </span>
@@ -53,7 +53,7 @@ export function LoadingStory({ title, findings, stage }: { title?: string; findi
         ))}
         {STAGES.slice(0, reached + 1).map((s, i) => (
           <motion.li key={s} {...enter} className="flex items-center gap-3 t-body text-fg-1">
-            {i < reached ? <CheckIcon className="shrink-0 text-steel" /> : <Spinner className="text-fg-2" />}
+            {i < reached ? <SuccessCheck className="text-accent-ink" /> : <Spinner className="text-fg-2" />}
             {STAGE_TEXT[s]}
           </motion.li>
         ))}

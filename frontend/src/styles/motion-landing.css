@@ -1,0 +1,419 @@
+/* Motion: landing. Owned by one area; see globals.css for shared tokens. */
+
+/*
+ * Conventions: base styles are the END state; entrance keyframes only say
+ * where they come FROM, so the global reduced-motion block (animation: none)
+ * leaves everything static and complete. Entrances use fill-mode "backwards"
+ * so hover transitions on the same property work once they're done.
+ * Note: this file is imported before globals.css's own rules, so anything
+ * that must beat a global class uses a more specific selector.
+ */
+
+/* ---------- Calm hover lift (reader + step cards) ---------- */
+
+.lift {
+  transition: translate var(--dur-spring) var(--ease-spring);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .lift:hover {
+    translate: 0 -3px;
+  }
+}
+
+/* Small lime status dots breathe. */
+.breathe-dot {
+  animation: breathe 2.4s var(--ease-loop) infinite;
+}
+
+/* ---------- Gap: the diff's added lines rise in one by one ---------- */
+
+@keyframes diff-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+.diff-add {
+  display: inline-block;
+  animation: diff-in 700ms var(--ease-enter) backwards;
+  animation-delay: calc(300ms + var(--i, 0) * 110ms);
+}
+
+/* ---------- Gap: orbiting nodes around the lime hub ---------- */
+
+.orbit {
+  --orbit-r: 56px; /* node orbit radius */
+  --hub-half: 28px; /* half the hub's size */
+  --node: 14px;
+}
+
+@keyframes orbit-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+.orbit-spin {
+  animation: orbit-spin 60s linear infinite;
+}
+
+/* One arm per node, from the centre out at angle --a. */
+.orbit-arm {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--orbit-r);
+  height: 0;
+  transform-origin: 0 0;
+  rotate: var(--a);
+}
+.orbit-spoke {
+  position: absolute;
+  left: calc(var(--hub-half) + 4px);
+  right: calc(var(--node) / 2 + 3px);
+  top: -0.5px;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--text-1) 24%, transparent) 0 2px, transparent 2px 5px);
+}
+.orbit-node {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: var(--node);
+  height: var(--node);
+  margin: calc(var(--node) / -2);
+  rotate: calc(var(--a) * -1); /* undo the arm's angle... */
+}
+/* ...and spin backwards, so the face (highlight on top) stays upright. */
+.orbit-node-face {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--text-1) 9%, var(--surface-2)), var(--surface-2));
+  box-shadow:
+    inset 0 0 0 1px var(--ring-strong),
+    inset 0 1px 0 color-mix(in srgb, var(--text-1) 12%, transparent),
+    0 4px 10px -4px rgba(0, 0, 0, 0.5);
+  animation:
+    pop 700ms var(--ease-enter) backwards,
+    orbit-spin 60s linear infinite reverse;
+  animation-delay: calc(200ms + var(--i, 0) * 90ms), 0s;
+}
+.orbit-node-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--icon-idle);
+}
+
+/*
+ * A lime dot rides each spoke: in to the hub (lands at 25% of 8s = 2s), back
+ * out, then rests hidden. Arms alternate a 4s offset, so a dot lands every 4s.
+ */
+@keyframes orbit-travel {
+  0% {
+    translate: calc(var(--orbit-r) - var(--node) / 2 - 2px) 0;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  25% {
+    translate: calc(var(--hub-half) + 1px) 0;
+    opacity: 1;
+  }
+  44% {
+    opacity: 0.9;
+  }
+  50%,
+  100% {
+    translate: calc(var(--orbit-r) - var(--node) / 2 - 2px) 0;
+    opacity: 0;
+  }
+}
+.orbit-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 4px;
+  margin: -2px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  opacity: 0;
+  animation: orbit-travel 8s var(--ease-loop) infinite;
+  animation-delay: var(--d, 0s);
+}
+
+/* The hub: fades in, then blooms for ~300ms each time a dot lands (every 4s at 2s). */
+@keyframes orbit-hub-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+@keyframes orbit-pulse {
+  0%,
+  49%,
+  57%,
+  100% {
+    scale: 1;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      inset 0 -2px 4px rgba(60, 80, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 0 50px var(--accent-glow);
+  }
+  52% {
+    scale: 1.04;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      inset 0 -2px 4px rgba(60, 80, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.2),
+      0 0 80px rgba(200, 245, 60, 0.7);
+  }
+}
+.orbit .orbit-hub {
+  position: absolute; /* .logo-tile sets relative */
+  inset: 0;
+  margin: auto;
+  animation:
+    orbit-hub-in 800ms var(--ease-enter) backwards,
+    orbit-pulse 4s var(--ease-loop) infinite;
+}
+
+/* ---------- How it works ---------- */
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    translate: 0 20px;
+  }
+}
+.step-in {
+  animation: step-in 850ms var(--ease-enter) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+/* Step 1: a slow lime focus ring breathes around the white pill. */
+@keyframes explain-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 32px -12px rgba(0, 0, 0, 0.6),
+      0 0 0 0 color-mix(in srgb, var(--accent-ink) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 8px 32px -12px rgba(0, 0, 0, 0.6),
+      0 0 0 4px color-mix(in srgb, var(--accent-ink) 30%, transparent);
+  }
+}
+.explain-pill {
+  animation: explain-ring 4s var(--ease-loop) infinite;
+}
+
+/* Step 2: each check pops, draws its tick, then sends out a ring (80ms stagger). */
+.check-dot {
+  --t: calc(450ms + var(--i, 0) * 80ms);
+  animation: check-pop 600ms var(--ease-enter) backwards;
+  animation-delay: var(--t);
+}
+@keyframes check-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.15;
+    box-shadow: 0 0 14px var(--accent-glow);
+  }
+}
+.check-dot .draw {
+  animation-duration: 550ms;
+  animation-delay: calc(var(--t) + 150ms);
+}
+.check-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1.5px var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: check-ripple 700ms var(--ease-enter) backwards;
+  animation-delay: calc(var(--t) + 450ms);
+}
+[data-inview="false"] .check-dot::after {
+  animation-play-state: paused;
+}
+@keyframes check-ripple {
+  0% {
+    opacity: 0;
+    scale: 1;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    scale: 2.4;
+  }
+}
+
+/* Step 3: the team-feed pill glows softly. */
+@keyframes feed-glow {
+  0%,
+  100% {
+    box-shadow: 0 6px 24px -8px var(--accent-glow);
+  }
+  50% {
+    box-shadow:
+      0 8px 30px -6px var(--accent-glow),
+      0 0 18px -4px var(--accent-glow);
+  }
+}
+.feed-glow {
+  animation: feed-glow 4s var(--ease-loop) infinite;
+}
+
+/* ---------- Promises: glossy tiles whose icons draw in ---------- */
+
+.promise-tile .draw {
+  animation-duration: 900ms;
+  animation-delay: calc(350ms + var(--i, 0) * 120ms + var(--j, 0) * 140ms);
+}
+
+/* ---------- Pricing: lift, lime edge, pointer spotlight (.spot) ---------- */
+
+.pricing-card {
+  transition:
+    translate var(--dur-spring) var(--ease-spring),
+    box-shadow 250ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pricing-card:hover {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--accent-ink) 45%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+      0 0 90px -16px var(--accent-glow),
+      0 28px 60px -28px rgba(0, 0, 0, 0.5);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .pricing-card:hover {
+    translate: 0 -6px;
+  }
+}
+
+/* ---------- Closing ---------- */
+
+/* The faded ">>" watermark drifts right and back, its opacity ±15%. */
+@keyframes watermark-drift {
+  0%,
+  100% {
+    translate: 0 0;
+    opacity: 0.034;
+  }
+  50% {
+    translate: 16px 0;
+    opacity: 0.046;
+  }
+}
+.watermark-drift {
+  animation: watermark-drift 8s var(--ease-loop) infinite;
+}
+
+/* GitHub square: lifts 3px, edge and icon turn lime. */
+.social-btn {
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    translate var(--dur-spring) var(--ease-spring),
+    background-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease;
+}
+.social-btn svg {
+  transition: filter 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .social-btn:hover {
+    color: var(--accent-ink);
+    box-shadow:
+      inset 0 0 0 1px var(--accent-ink),
+      0 10px 24px -12px var(--accent-glow);
+  }
+  .social-btn:hover svg {
+    filter: var(--lime-glow-filter);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .social-btn:hover {
+    translate: 0 -3px;
+  }
+}
+
+/* The lime card's outer glow breathes (blur 50 -> 70px). */
+@keyframes lime-card-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+      0 30px 120px -30px rgba(200, 245, 60, 0.55),
+      0 0 50px -10px var(--accent-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+      0 30px 120px -30px rgba(200, 245, 60, 0.55),
+      0 0 70px -6px var(--accent-glow);
+  }
+}
+.lime-glow-card {
+  /* Lime focus ring would vanish on the lime card: use dark ink here. */
+  --focus: #14200f;
+  animation: lime-card-glow 4s var(--ease-loop) infinite;
+}
+
+/*
+ * Black pill CTA on the lime card: a small arrow slides in from the left on
+ * hover while the label shifts right; the pill's width never changes.
+ */
+.cta-slide .cta-arrow {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  margin-top: -6px;
+  opacity: 0;
+  translate: -8px 0;
+  transition:
+    opacity 200ms ease,
+    translate var(--dur-spring) var(--ease-spring);
+}
+.cta-slide .cta-label {
+  transition: translate var(--dur-spring) var(--ease-spring);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cta-slide:hover .cta-arrow {
+    opacity: 1;
+    translate: 0 0;
+  }
+  .cta-slide:hover .cta-label {
+    translate: 9px 0;
+  }
+}
+.cta-slide:focus-visible .cta-arrow {
+  opacity: 1;
+  translate: 0 0;
+}
+.cta-slide:focus-visible .cta-label {
+  translate: 9px 0;
+}

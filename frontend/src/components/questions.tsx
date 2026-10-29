@@ -76,13 +76,13 @@ export function QuestionsList() {
               aria-pressed={tab === t}
               onClick={() => setTab(t)}
               className={cn(
-                "press inline-flex h-9 items-center gap-2 rounded-[6px] px-4 t-small font-medium",
+                "press inline-flex h-9 items-center gap-2 rounded-full px-4 t-small font-medium",
                 tab === t ? "bg-surface-1 text-fg-1 shadow-elev-1" : "text-fg-2 hover:text-fg-1",
               )}
             >
               {t === "received" ? "Asked of me" : "I asked"}
               {count > 0 && (
-                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-deep px-1.5 t-micro text-paper">
+                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 t-micro font-semibold text-accent-fg">
                   {count}
                   <span className="sr-only"> unread</span>
                 </span>
@@ -121,7 +121,7 @@ export function QuestionsList() {
                         </span>
                       )}
                       <span className="t-body font-semibold text-fg-1">{t.subject}</span>
-                      {t.unread && <span className="size-2 rounded-full bg-steel" aria-label="Unread" />}
+                      {t.unread && <span className="size-2 rounded-full bg-accent" aria-label="Unread" />}
                     </div>
                     <p className="mt-0.5 t-small text-fg-3">
                       {tab === "received" ? "From " : "To "}

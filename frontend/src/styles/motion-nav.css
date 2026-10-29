@@ -1,0 +1,162 @@
+/* Motion: nav, buttons, icon buttons and loaders (spec §1, §2, §13). */
+/*
+ * Base styles are the end state; keyframes animate FROM the start state, so
+ * the reduced-motion block in globals.css (animation: none) shows them static.
+ * The .btn / .btn-primary / .btn-secondary / .btn-dot markers come from
+ * buttonStyles() in components/button.tsx, so <Link> pills get all of this too.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Buttons: spring lift (translate), kept apart from .press (transform) */
+/* ------------------------------------------------------------------ */
+
+.btn {
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    translate var(--dur-spring) var(--ease-spring),
+    background-color var(--dur-hover) ease,
+    color var(--dur-hover) ease,
+    box-shadow var(--dur-hover) ease,
+    opacity var(--dur-hover) ease;
+}
+
+/* Primary lime pill: shine bar clipped to the pill by its own radius. */
+.btn-primary {
+  isolation: isolate;
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: linear-gradient(
+    60deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    transparent 60%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  /* Parked off the left edge; the sweep ends off the right edge. */
+  background-position: 100% 0;
+  opacity: 0;
+}
+@keyframes btn-shine {
+  0% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 0;
+    opacity: 1;
+  }
+}
+
+/* Icons inside a primary pill (arrows, dots) nudge right on hover. */
+/* (.cta-arrow has its own slide-in in motion-landing.css.) */
+.btn-primary svg:not(.spinner, .cta-arrow),
+.btn-primary.btn-dot::before {
+  transition: translate var(--dur-spring) var(--ease-spring);
+}
+
+/* Secondary glass pill: the small dot grows on hover, spring. */
+.btn-dot::before {
+  transition:
+    scale var(--dur-spring) var(--ease-spring),
+    translate var(--dur-spring) var(--ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    translate: 0 -2px;
+  }
+  .btn-primary:hover:not(:disabled)::after {
+    animation: btn-shine 600ms ease-in-out forwards;
+  }
+  .btn-primary:hover:not(:disabled) svg:not(.spinner, .cta-arrow),
+  .btn-primary.btn-dot:hover:not(:disabled)::before {
+    translate: 3px 0;
+  }
+  .btn-secondary.btn-dot:hover:not(:disabled)::before {
+    scale: 1.4;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Nav "Log in" pill: the dot sends out a soft ring, every 2s          */
+/* ------------------------------------------------------------------ */
+
+@keyframes nav-dot-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ring-c) 70%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--ring-c) 0%, transparent);
+  }
+}
+/* The ring takes the dot's colour (the pill's text colour, --text-1).
+   A resolved colour, not currentColor, so the shadow interpolates. */
+.nav-pulse.btn-dot::before {
+  --ring-c: var(--text-1);
+  animation: nav-dot-ring 2s var(--ease-loop) infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Icon buttons (§13): the icon sits inside <Button>'s swap spans, so   */
+/* the hover rule in globals (direct child only) is extended here.     */
+/* ------------------------------------------------------------------ */
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) .ico:not([data-active="true"], .is-active) {
+    color: var(--icon-hover);
+    scale: 1.08;
+  }
+}
+/* Active / selected (the bell while its menu is open): lime + glow, and it
+   stays lime under hover (outranks the globals hover rule). */
+.btn .ico.ico[data-active="true"],
+.btn .ico.ico.is-active {
+  color: var(--accent-ink);
+  filter: var(--lime-glow-filter);
+}
+
+/* Theme icon swap: the new glyph turns in rather than snapping. */
+@keyframes ico-turn-in {
+  from {
+    opacity: 0;
+    rotate: -60deg;
+    scale: 0.8;
+  }
+}
+.ico-turn-in {
+  animation: ico-turn-in 450ms var(--ease-enter) both;
+}
+
+/* Unread badge eases in. */
+.badge-pop {
+  animation: pop 400ms var(--ease-enter) both;
+}
+
+/* ------------------------------------------------------------------ */
+/* Loading (§13): thin lime arc, 0.9s per turn, very faint track       */
+/* ------------------------------------------------------------------ */
+
+@keyframes arc-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+.spinner.arc-spinner {
+  animation: arc-spin 900ms linear infinite;
+}
+.arc-spinner-arc {
+  stroke: var(--spinner-arc, var(--accent-ink));
+}
+/* On the lime pill the arc takes the pill's dark ink so it stays visible. */
+.btn-primary .arc-spinner {
+  --spinner-arc: currentColor;
+}

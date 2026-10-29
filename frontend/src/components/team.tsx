@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { toast } from "sonner";
 import * as api from "@/lib/api";
 import { errorText } from "@/lib/errors";
@@ -16,6 +16,7 @@ import { ConnectGithub, GithubConnected, GithubStatusPanel, UnassignedPanel, use
 import { ManageMember } from "./manage-member";
 import { Field, inputClass } from "./form";
 import { Avatar, SampleTag } from "./person";
+import { useInView } from "./motion/in-view";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000").replace(/\/$/, "");
 
@@ -574,9 +575,7 @@ function AiQuota() {
                   {u.exhausted ? "Used up" : `${u.left} of ${u.limit} left`}
                 </span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2" role="meter" aria-valuenow={u.used} aria-valuemax={u.limit} aria-label={name}>
-                <div className={cn("h-full rounded-full", low ? "bg-(--risk-high)" : "bg-fg-1")} style={{ width: `${pct}%` }} />
-              </div>
+              <Meter pct={pct} low={low} used={u.used} limit={u.limit} label={name} />
             </li>
           );
         })}
@@ -587,5 +586,23 @@ function AiQuota() {
         </p>
       )}
     </section>
+  );
+}
+
+/** Thin lime bar that fills from 0 on enter, a bright knob at its head. */
+function Meter({ pct, low, used, limit, label }: { pct: number; low: boolean; used: number; limit: number; label: string }) {
+  const [ref, inView] = useInView<HTMLDivElement>();
+  return (
+    <div
+      ref={ref}
+      data-inview={inView ? "true" : "false"}
+      className="mt-2 h-1.5 rounded-full bg-surface-2"
+      role="meter"
+      aria-valuenow={used}
+      aria-valuemax={limit}
+      aria-label={label}
+    >
+      {pct > 0 && <div className="meter-fill iv" style={{ width: `${pct}%`, "--meter": low ? "var(--risk-high)" : "var(--accent-ink)" } as CSSProperties} />}
+    </div>
   );
 }

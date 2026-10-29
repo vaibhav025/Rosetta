@@ -18,7 +18,7 @@ export function Avatar({ name, size = 32, lead = false }: { name: string; size?:
       style={{ width: size, height: size, fontSize: Math.round(size * 0.38) }}
       className={cn(
         "grid shrink-0 place-items-center rounded-full font-semibold",
-        lead ? "bg-deep text-paper" : "bg-surface-2 text-fg-1 shadow-ring-strong",
+        lead ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg-1 shadow-ring-strong",
       )}
     >
       {initials(name)}

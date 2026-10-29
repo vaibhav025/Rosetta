@@ -4,15 +4,17 @@ import { Tooltip } from "@base-ui/react/tooltip";
 import type { CSSProperties } from "react";
 import type { Risk } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useInView } from "./motion/in-view";
 
 const WORD: Record<Risk, string> = { low: "Low", medium: "Medium", high: "High" };
 const BARS: Record<Risk, number> = { low: 1, medium: 2, high: 3 };
 
 /** Icon + word + color, never color alone (design.md §2). */
 export function RiskBadge({ risk, reason }: { risk: Risk; reason?: string }) {
+  const [ref, inView] = useInView<SVGSVGElement>();
   const badge = (
     <>
-      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className="shrink-0">
+      <svg ref={ref} data-inview={inView ? "true" : "false"} width="12" height="12" viewBox="0 0 12 12" aria-hidden className="shrink-0">
         {[0, 1, 2].map((i) => (
           <rect
             key={i}
@@ -23,6 +25,8 @@ export function RiskBadge({ risk, reason }: { risk: Risk; reason?: string }) {
             rx="1"
             fill="currentColor"
             opacity={i < BARS[risk] ? 1 : 0.28}
+            className="risk-bar iv"
+            style={{ animationDelay: `${i * 90}ms` }}
           />
         ))}
       </svg>

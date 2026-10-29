@@ -120,7 +120,7 @@ export function Profile() {
                 <label
                   key={l}
                   className={cn(
-                    "press grid h-9 cursor-pointer place-items-center rounded-[6px] px-5 t-small font-medium text-fg-2",
+                    "press grid h-9 cursor-pointer place-items-center rounded-full px-5 t-small font-medium text-fg-2",
                     "has-[:checked]:bg-surface-1 has-[:checked]:text-fg-1 has-[:checked]:shadow-elev-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus",
                   )}
                 >

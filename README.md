@@ -4,7 +4,7 @@
 
 Engineers push code; managers, clients and the CMO need to know what it means for them. Rosetta reads each GitHub commit and explains it six ways, from a precise engineering summary to a plain-language note for a CMO, with a before-and-after flowchart, a worked example, and a check of how well the explanation matches the code. Questions go straight back to the engineer who wrote it, and answers come back rewritten for the person who asked.
 
-Built by Team CodeCrunchers for Devlympics 2026 (GDG NSUT).
+Built by Team CodeCrunchers.
 
 ---
 

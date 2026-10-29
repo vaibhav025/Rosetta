@@ -81,7 +81,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {tab.label}
               {tab.href === "/app/questions" && unread > 0 && (
-                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-deep px-1.5 t-micro text-paper tabular-nums">
+                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 t-micro font-semibold text-accent-fg tabular-nums">
                   {unread}
                   <span className="sr-only"> unread</span>
                 </span>

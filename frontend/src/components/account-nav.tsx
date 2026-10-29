@@ -11,7 +11,7 @@ import { buttonStyles } from "./button";
 import { Avatar } from "./person";
 
 const itemClass =
-  "press flex h-10 cursor-pointer items-center rounded-sm px-3 t-small font-medium text-fg-1 outline-none data-[highlighted]:bg-surface-2";
+  "press flex h-10 cursor-pointer items-center rounded-full px-3 t-small font-medium text-fg-1 outline-none data-[highlighted]:bg-surface-2";
 
 /** Right side of the nav: Log in / Get started, or the account menu. */
 export function AccountNav() {
@@ -25,10 +25,10 @@ export function AccountNav() {
     const next = pathname && pathname.startsWith("/app") ? `?next=${encodeURIComponent(pathname)}` : "";
     return (
       <>
-        <Link href={`/login${next}`} className={buttonStyles({ variant: "ghost" })}>
+        <Link href={`/login${next}`} className={cn(buttonStyles({ variant: "secondary", dot: true }), "nav-pulse max-sm:px-3.5")}>
           Log in
         </Link>
-        <Link href="/signup" className={buttonStyles({ variant: "primary" })}>
+        <Link href="/signup" className={cn(buttonStyles({ variant: "primary" }), "max-sm:px-3.5")}>
           Get started
         </Link>
       </>

@@ -9,12 +9,12 @@ import { cn, timeAgo } from "@/lib/utils";
 import { buttonStyles } from "./button";
 
 const DOT: Record<NotificationItem["kind"], string> = {
-  question: "bg-steel",
-  reply: "bg-steel",
+  question: "bg-accent",
+  reply: "bg-accent",
   report: "bg-(--risk-high)",
   change: "bg-(--risk-low)",
   reviewed: "bg-(--risk-low)",
-  joined: "bg-mist",
+  joined: "bg-fg-1",
 };
 
 /** The bell: questions, replies, reports and new changes, for people who don't live in email. */
@@ -23,6 +23,7 @@ export function NotificationBell() {
   const pathname = usePathname();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const load = useCallback(() => {
     api
@@ -60,17 +61,17 @@ export function NotificationBell() {
   };
 
   return (
-    <Menu.Root>
+    <Menu.Root onOpenChange={(o) => setMenuOpen(o)}>
       <Menu.Trigger
         className={cn(buttonStyles({ variant: "ghost", size: "icon" }), "relative data-[popup-open]:bg-surface-2")}
         aria-label={unread ? `Notifications, ${unread} new` : "Notifications"}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-[18px] shrink-0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden data-active={menuOpen} className="ico size-[18px] shrink-0">
           <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
           <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
         {unread > 0 && (
-          <span className="absolute top-1 right-1 grid h-4 min-w-4 place-items-center rounded-full bg-(--risk-high) px-1 text-[10px] leading-none font-semibold text-paper tabular-nums">
+          <span className="badge-pop absolute top-1 right-1 grid h-4 min-w-4 place-items-center rounded-full bg-(--risk-high) px-1 text-[10px] leading-none font-semibold text-paper tabular-nums">
             {unread > 9 ? "9+" : unread}
           </span>
         )}

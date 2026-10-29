@@ -8,17 +8,21 @@ import { Toaster } from "sonner";
 import { SessionProvider } from "@/lib/session";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { ConsentBanner } from "./consent-banner";
+import { ButtonZoom } from "./motion/button-zoom";
+import { Cursor } from "./motion/cursor";
 
 export function Providers({ children }: { children: ReactNode }) {
   const desktop = useMediaQuery("(min-width: 768px)", true);
 
   return (
-    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
       <MotionConfig reducedMotion="user">
         <SessionProvider>
         <Tooltip.Provider delay={300}>
           {children}
           <ConsentBanner />
+          <Cursor />
+          <ButtonZoom />
           <Toaster
             position={desktop ? "bottom-right" : "top-center"}
             toastOptions={{

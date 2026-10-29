@@ -1,0 +1,196 @@
+/* Motion: hero. Owned by one area; see globals.css for shared tokens. */
+
+/*
+ * Base styles are the END state; keyframes animate FROM the start state, so
+ * the global reduced-motion block (animation: none) leaves everything static
+ * and fully visible.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Hero window: left tool rail (decorative glass buttons)              */
+/* ------------------------------------------------------------------ */
+
+.hero-tool {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--icon-idle);
+  background: var(--btn-secondary-bg);
+  box-shadow: inset 0 0 0 1px var(--ring-strong);
+  transition:
+    color var(--dur-hover) ease,
+    background-color var(--dur-hover) ease,
+    box-shadow var(--dur-hover) ease,
+    filter var(--dur-hover) ease,
+    scale var(--dur-spring) var(--ease-spring);
+  animation: rise var(--dur-enter) var(--ease-enter) both;
+}
+.hero-tool svg {
+  width: 15px;
+  height: 15px;
+  transition: filter var(--dur-hover) ease;
+}
+.hero-tool[data-active="true"] {
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent-ink) 55%, transparent),
+    0 0 18px -4px var(--accent-glow);
+}
+.hero-tool[data-active="true"] svg {
+  filter: var(--lime-glow-filter);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-tool:hover {
+    color: var(--accent-ink);
+    scale: 1.06;
+    box-shadow:
+      inset 0 0 0 1px var(--accent-ink),
+      0 0 14px -4px var(--accent-glow);
+  }
+  .hero-tool:hover svg {
+    filter: var(--lime-glow-filter);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero window: node graph                                             */
+/* ------------------------------------------------------------------ */
+
+/* Nodes pop in (scale .9 -> 1 + fade), staggered via inline delay. */
+.hero-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop var(--dur-enter) var(--ease-enter) both;
+}
+
+/* Connectors: muted lime, self-drawing (uses the shared .draw class). */
+.hero-wire {
+  stroke: var(--accent-ink);
+  stroke-opacity: 0.5;
+}
+.hero-wire.draw {
+  animation-duration: 1s;
+}
+
+/* Bright pulse: a short dash that travels the wire, then rests. */
+@keyframes hero-pulse {
+  0% {
+    stroke-dashoffset: 0.12;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
+  46% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+.hero-pulse {
+  stroke: var(--accent);
+  stroke-dasharray: 0.12 1;
+  stroke-dashoffset: -1;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px var(--accent-glow)) drop-shadow(0 0 1px var(--accent));
+  animation: hero-pulse 3.2s var(--ease-loop) infinite;
+}
+[data-theme="light"] .hero-pulse {
+  stroke: var(--accent-ink);
+}
+
+/* Blank branch pills fade in after their wire has drawn. */
+.hero-pill {
+  transform-box: fill-box;
+  transform-origin: center;
+  fill: color-mix(in srgb, var(--accent) 10%, var(--surface-1));
+  stroke: color-mix(in srgb, var(--accent-ink) 45%, transparent);
+  animation: pop 700ms var(--ease-enter) both;
+}
+
+/* The finished node's status dot breathes softly. */
+@keyframes hero-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.hero-dot {
+  filter: drop-shadow(0 0 4px var(--accent-glow));
+  animation: hero-dot 4s var(--ease-loop) 2s infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Bridge Slider                                                       */
+/* ------------------------------------------------------------------ */
+
+/* Knob: round, glowing; hover glows a little more, drag grows to 1.2. */
+.bs-knob {
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 18px var(--accent-glow);
+  transition:
+    scale var(--dur-spring) var(--ease-spring),
+    box-shadow var(--dur-hover) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bs-knob:hover {
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--accent) 28%, transparent),
+      0 0 26px var(--accent-glow);
+  }
+}
+.bs-knob:active,
+[data-dragging] .bs-knob {
+  scale: 1.2;
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 34px 4px var(--accent-glow);
+}
+
+/* Stops light up as the knob passes them. */
+.bs-tick {
+  transition:
+    background-color 250ms ease,
+    box-shadow 250ms ease;
+}
+.bs-tick[data-passed="true"] {
+  box-shadow: 0 0 5px 1px var(--accent-glow);
+}
+
+/* Stop labels ease between muted and active. */
+.bs-label {
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    color 250ms ease,
+    font-weight 250ms ease,
+    opacity 150ms ease;
+}
+
+/* A soft tail of light just behind the knob. */
+.bs-trail {
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--accent) 60%, transparent) 45%,
+    color-mix(in srgb, var(--accent) 40%, #fff)
+  );
+  filter: blur(2px);
+  opacity: 0.6;
+  transition: opacity 300ms ease;
+}
+[data-dragging] .bs-trail {
+  opacity: 1;
+}

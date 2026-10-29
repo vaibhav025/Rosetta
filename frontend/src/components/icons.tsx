@@ -2,13 +2,16 @@ import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
+/** One stroke for every line icon: thin, round caps and joins. */
+export const ICON_STROKE = 1.5;
+
 const base = (size: number): SVGProps<SVGSVGElement> => ({
   width: size,
   height: size,
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.75,
+  strokeWidth: ICON_STROKE,
   strokeLinecap: "round",
   strokeLinejoin: "round",
   "aria-hidden": true,
@@ -39,11 +42,24 @@ export function GitHubIcon({ size = 18, ...props }: IconProps) {
   );
 }
 
-export function CheckIcon({ size = 16, ...props }: IconProps) {
+/** `draw` makes the stroke draw itself in (see .draw in globals.css). */
+export function CheckIcon({ size = 16, draw = false, ...props }: IconProps & { draw?: boolean }) {
   return (
-    <svg {...base(size)} strokeWidth={2} {...props}>
-      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    <svg {...base(size)} {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" pathLength={draw ? 1 : undefined} className={draw ? "draw" : undefined} />
     </svg>
+  );
+}
+
+/**
+ * A success check that draws itself in with a brief lime ring ripple. Mount
+ * it at the moment a step completes; it plays once (static with reduced motion).
+ */
+export function SuccessCheck({ size = 16, className, ...props }: IconProps) {
+  return (
+    <span aria-hidden className="tick" style={{ width: size, height: size }}>
+      <CheckIcon size={size} draw className={className} {...props} />
+    </span>
   );
 }
 

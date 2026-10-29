@@ -3,6 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import type { Verification } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useInView } from "./motion/in-view";
 
 const WORD: Record<Verification["confidence"], string> = { high: "High", medium: "Medium", low: "Low" };
 const TONE: Record<Verification["confidence"], string> = { high: "var(--risk-low)", medium: "var(--risk-medium)", low: "var(--risk-high)" };
@@ -18,11 +19,22 @@ export const formatScore = (score: number) => `${score}/100`;
 
 /** A check mark in a ring that fills with the score. Icon + word + number, never color alone. */
 function Ring({ score }: { score: number }) {
-  const c = 2 * Math.PI * 5;
+  const [ref, inView] = useInView<SVGSVGElement>();
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden className="shrink-0 -rotate-90">
+    <svg ref={ref} data-inview={inView ? "true" : "false"} width="14" height="14" viewBox="0 0 14 14" aria-hidden className="shrink-0 -rotate-90">
       <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2" />
-      <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray={`${(score / 100) * c} ${c}`} strokeLinecap="round" />
+      <circle
+        cx="7"
+        cy="7"
+        r="5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        pathLength={100}
+        strokeDasharray={`${score} 100`}
+        strokeLinecap="round"
+        className="ring-fill iv"
+      />
     </svg>
   );
 }

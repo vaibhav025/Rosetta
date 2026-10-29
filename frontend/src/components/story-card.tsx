@@ -31,7 +31,7 @@ export function StoryCard({ level, levelLabel, fileCount, editable, onEdit, note
           onCommit={(v) => onEdit("summary", v)}
           className="t-summary text-pretty text-fg-1"
         />
-        <div className="relative mt-6 pl-4 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:rounded-full before:bg-steel">
+        <div className="relative mt-6 pl-4 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:rounded-full before:bg-accent">
           <Editable
             value={level.analogy}
             editable={editable}

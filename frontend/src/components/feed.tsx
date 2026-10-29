@@ -1,22 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "@/lib/session";
 import type { Feed, FeedItem, Person } from "@/lib/types";
 import { cn, firstName, timeAgo } from "@/lib/utils";
 import { ConfidencePill } from "./confidence";
+import { ICON_STROKE } from "./icons";
 import { DeleteChange, TrashIcon } from "./delete-change";
 import { Avatar, PersonLine, SampleTag } from "./person";
 import { Button } from "./button";
 import { RiskBadge } from "./risk-badge";
+import { useInView } from "./motion/in-view";
+
+/**
+ * Eases from the number on screen to `to` once `start` is true: from 0 on
+ * first enter, from the old value when filters change. Reduced motion jumps.
+ */
+function useTween(to: number, start: boolean, duration = 1600) {
+  const [value, setValue] = useState(0);
+  const shown = useRef(0);
+  useEffect(() => {
+    if (!start) return;
+    const from = shown.current;
+    if (from === to || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      shown.current = to;
+      setValue(to);
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      shown.current = from + (to - from) * (1 - Math.pow(1 - p, 4));
+      setValue(shown.current);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, start, duration]);
+  return value;
+}
 
 export function StatTile({ label, value, hint, tone }: { label: string; value: number; hint?: string; tone?: "attention" }) {
+  const [ref, inView] = useInView<HTMLDivElement>();
+  const shown = useTween(value, inView);
   return (
-    <div className="rounded-md bg-surface-1 px-5 py-4 shadow-elev-1">
-      <p className="t-small text-fg-2">{label}</p>
+    <div ref={ref} data-inview={inView ? "true" : "false"} className="rounded-md bg-surface-1 px-5 py-4 shadow-elev-1">
+      <p className="stat-label iv t-small text-fg-2">{label}</p>
       <p className={cn("mt-1 font-display text-[2rem] leading-none font-semibold tabular-nums", tone === "attention" && value > 0 ? "text-(--risk-medium)" : "text-fg-1")}>
-        {value}
+        <span aria-hidden className="stat-num iv">
+          {Math.round(shown)}
+        </span>
+        <span className="sr-only">{value}</span>
       </p>
       {hint && <p className="mt-2 t-small text-fg-3">{hint}</p>}
     </div>
@@ -198,7 +234,7 @@ export function FeedTools({ value, onChange, repos }: { value: ToolsValue; onCha
       <label className="grid min-w-0 flex-1 basis-56 gap-1">
         <span className="t-micro text-fg-3">Search</span>
         <span className="relative">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={ICON_STROKE} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-3">
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.5-3.5" />
           </svg>

@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, ReactNode, Ref } from "react";
 import { cn } from "@/lib/utils";
 
 export const inputClass =
-  "h-11 w-full rounded-sm bg-surface-2 px-3 text-base text-fg-1 shadow-ring-strong outline-none transition-[box-shadow] duration-150 placeholder:text-fg-3 focus-visible:shadow-[0_0_0_2px_var(--focus)] read-only:text-fg-3 aria-invalid:shadow-[0_0_0_2px_var(--risk-high)]";
+  "h-11 w-full rounded-full bg-surface-1 px-4 text-base text-fg-1 shadow-ring-strong outline-none transition-[box-shadow] duration-150 placeholder:text-fg-3 focus-visible:shadow-[0_0_0_2px_var(--focus)] read-only:text-fg-3 aria-invalid:shadow-[0_0_0_2px_var(--risk-high)]";
 
 type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;

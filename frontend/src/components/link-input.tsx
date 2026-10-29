@@ -36,7 +36,7 @@ export function LinkInput({ value, onValueChange, onPasteValue, onSubmit, loadin
         e.preventDefault();
         onSubmit();
       }}
-      className="glass flex h-14 w-full items-center gap-1 rounded-md p-1 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus"
+      className="flex h-14 w-full items-center gap-1 rounded-full bg-white p-1 shadow-[0_0_0_1px_rgba(255,255,255,0.2),0_12px_40px_-12px_rgba(0,0,0,0.6)] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus"
     >
       <input
         id="commit-link"
@@ -55,9 +55,9 @@ export function LinkInput({ value, onValueChange, onPasteValue, onSubmit, loadin
         readOnly={loading}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
-        className="h-12 min-w-0 flex-1 rounded-[12px] bg-transparent px-4 font-mono text-base font-medium text-fg-1 outline-none placeholder:font-normal placeholder:text-fg-3"
+        className="h-12 min-w-0 flex-1 rounded-full bg-transparent px-4 font-mono text-base font-medium text-neutral-950 outline-none placeholder:font-normal placeholder:text-neutral-500"
       />
-      <Button type="submit" variant="primary" loading={loading} className="h-12! rounded-[12px] px-5">
+      <Button type="submit" variant="primary" loading={loading} className="h-12! bg-neutral-950! px-6 text-white! shadow-none! enabled:hover:bg-neutral-800!">
         Explain
       </Button>
     </form>

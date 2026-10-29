@@ -73,7 +73,7 @@ export function ComposeQuestion({ open, onOpenChange, people, toId, subject = ""
               </Dialog.Description>
             </div>
             <Dialog.Close className="press -mt-1 -mr-2 grid size-10 place-items-center rounded-sm text-fg-2 hover:bg-surface-2" aria-label="Close">
-              <CloseIcon />
+              <CloseIcon className="ico" />
             </Dialog.Close>
           </div>
 

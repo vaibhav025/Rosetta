@@ -329,7 +329,7 @@ function TicketRow({ ticket }: { ticket: TicketSummary }) {
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2 t-small font-semibold text-fg-1">
             <span className="truncate">{ticket.subject}</span>
-            {ticket.unread && <span className="size-2 shrink-0 rounded-full bg-steel" aria-label="Unread" />}
+            {ticket.unread && <span className="size-2 shrink-0 rounded-full bg-accent" aria-label="Unread" />}
           </span>
           <span className="block truncate t-small text-fg-2">{ticket.preview}</span>
         </span>
@@ -502,7 +502,7 @@ function LeadHome({ user }: { user: User }) {
                         }}
                         className={cn(
                           "press w-full rounded-md bg-surface-1 p-5 text-left shadow-elev-1",
-                          active && "shadow-[0_0_0_2px_var(--color-steel)]",
+                          active && "shadow-[0_0_0_2px_var(--accent-ink)]",
                         )}
                       >
                         <span className="block t-body font-semibold text-fg-1">{t.name}</span>

@@ -94,7 +94,7 @@ export function WorkspaceForm() {
                 key={r.key}
                 className={cn(
                   "press flex cursor-pointer flex-col gap-1 rounded-sm bg-surface-2 p-4 shadow-ring",
-                  "has-[:checked]:shadow-[0_0_0_2px_var(--color-steel)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus",
+                  "has-[:checked]:shadow-[0_0_0_2px_var(--accent-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus",
                 )}
               >
                 <input type="radio" name="role" className="sr-only" checked={role === r.key} onChange={() => setRole(r.key)} />

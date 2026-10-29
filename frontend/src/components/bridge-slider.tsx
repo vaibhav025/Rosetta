@@ -6,7 +6,9 @@ import {
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
+  useSpring,
   useTransform,
+  useVelocity,
   type AnimationPlaybackControls,
 } from "motion/react";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
@@ -42,6 +44,13 @@ export function BridgeSlider({ value, source, onChange, variant = "full", classN
   const pct = useMotionValue(toPct(value));
   const thumbX = useTransform(pct, (v) => `${v}%`);
   const fillX = useTransform(pct, (v) => `${v - 100}%`);
+  // Knob trail: spans the filled part; its tail brightens with speed.
+  const trailW = useTransform(pct, (v) => `${v}%`);
+  const speed = useVelocity(pct);
+  const trailOpacity = useSpring(
+    useTransform(speed, (v) => Math.min(0.45 + Math.abs(v) / 160, 1)),
+    { stiffness: 170, damping: 22 },
+  );
   const [live, setLive] = useState(value);
   const [dragging, setDragging] = useState(false);
 
@@ -176,18 +185,27 @@ export function BridgeSlider({ value, source, onChange, variant = "full", classN
 
       {/* Generous vertical hit area around the 6px track. */}
       <div className="relative -mx-4 -my-3 cursor-pointer overflow-x-clip px-4 py-3 touch-pan-y" onPointerDown={onTrackDown}>
-        <div ref={trackRef} className="relative h-1.5 rounded-full bg-surface-2">
+        <div ref={trackRef} className="relative h-1 rounded-full bg-(--ring-strong)">
           <div className="absolute inset-0 overflow-hidden rounded-full">
-            <motion.div className="absolute inset-0 bg-steel" style={{ x: fillX }} />
+            <motion.div className="absolute inset-0 bg-accent shadow-[0_0_12px_var(--accent-glow)]" style={{ x: fillX }} />
           </div>
+
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-0 h-0"
+            style={{ width: trailW, opacity: reduceMotion ? 0.45 : trailOpacity }}
+          >
+            <span className="bs-trail absolute top-0 right-0 h-1.5 w-14 max-w-full -translate-y-1/2 rounded-full" />
+          </motion.div>
 
           {LEVELS.map((level, i) => (
             <span
               key={level.key}
               aria-hidden
+              data-passed={i <= live}
               className={cn(
-                "absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[background-color] duration-150",
-                i <= live ? "bg-paper" : "bg-fg-3",
+                "bs-tick absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                i <= live ? "bg-accent-fg/60" : "bg-fg-3",
               )}
               style={{ left: `${toPct(i)}%` }}
             />
@@ -210,9 +228,8 @@ export function BridgeSlider({ value, source, onChange, variant = "full", classN
               onLostPointerCapture={onThumbUp}
               onKeyDown={onKeyDown}
               className={cn(
-                "slider-thumb pointer-events-auto absolute touch-none top-1/2 left-0 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper",
-                "shadow-[inset_0_0_0_1px_var(--color-steel),var(--elev-2)] transition-[scale] duration-(--dur-press) ease-out",
-                dragging ? "scale-[0.97] cursor-grabbing" : "cursor-grab active:scale-[0.97]",
+                "slider-thumb bs-knob pointer-events-auto absolute touch-none top-1/2 left-0 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper",
+                dragging ? "cursor-grabbing" : "cursor-grab",
               )}
             />
           </motion.div>
@@ -236,7 +253,7 @@ function StopLabels({ active, onPick }: { active: number; onPick: (index: number
             tabIndex={-1}
             onClick={() => onPick(i)}
             className={cn(
-              "press absolute top-0 rounded-xs px-1 -mx-1 t-micro whitespace-nowrap",
+              "press bs-label absolute top-0 rounded-xs px-1 -mx-1 t-micro whitespace-nowrap",
               edge,
               isActive ? "font-semibold text-fg-1" : "text-fg-3 enabled:hover:text-fg-2 max-[480px]:hidden",
             )}

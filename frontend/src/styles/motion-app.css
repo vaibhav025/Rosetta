@@ -1,0 +1,194 @@
+/* Motion: app. Owned by one area; see globals.css for shared tokens. */
+
+/*
+ * Every keyframe here animates FROM the start state; base styles are the end
+ * state, so the global reduced-motion rule (animation: none) shows the static
+ * end. Pair with .iv + an in-view ancestor to wait until it scrolls in.
+ */
+
+/* ------------------------------------------------------------------ */
+/* §10 Footer links: gray -> text-1, underline draws left to right     */
+/* ------------------------------------------------------------------ */
+.foot-link {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+  transition:
+    color var(--dur-hover) var(--ease-enter),
+    background-size var(--dur-hover) var(--ease-enter);
+}
+.foot-link:focus-visible {
+  color: var(--text-1);
+  background-size: 100% 1px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .foot-link:hover {
+    color: var(--text-1);
+    background-size: 100% 1px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* §13 Success check: stroke draws in, a lime ring ripples out once    */
+/* ------------------------------------------------------------------ */
+.tick {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.tick::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--accent-ink);
+  opacity: 0;
+  pointer-events: none;
+  animation: tick-ripple 700ms var(--ease-enter) both;
+}
+.tick > svg {
+  animation: tick-glow 1.2s var(--ease-enter) both;
+}
+.tick .draw {
+  animation-duration: 600ms;
+}
+@keyframes tick-ripple {
+  from {
+    opacity: 0.75;
+    scale: 0.5;
+  }
+  to {
+    opacity: 0;
+    scale: 1.9;
+  }
+}
+@keyframes tick-glow {
+  0% {
+    filter: var(--lime-glow-filter);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* §12 Typing dots: three dots bounce in sequence, 1s loop             */
+/* ------------------------------------------------------------------ */
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 1em;
+}
+.typing-dots > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--accent-ink);
+  opacity: 0.9;
+  animation: typing-bounce 1s var(--ease-loop) infinite;
+}
+.typing-dots > span:nth-child(2) {
+  animation-delay: 150ms;
+}
+.typing-dots > span:nth-child(3) {
+  animation-delay: 300ms;
+}
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    translate: 0 0;
+    opacity: 0.35;
+  }
+  30% {
+    translate: 0 -4px;
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* §7 Ring gauges: stroke fills from 0 on enter (circle pathLength=100) */
+/* ------------------------------------------------------------------ */
+.ring-fill {
+  animation: ring-fill 1.4s var(--ease-enter) both;
+  transition: stroke-dasharray 600ms var(--ease-enter);
+}
+@keyframes ring-fill {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+/* Risk meter bars rise one by one on enter. */
+.risk-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: risk-bar 700ms var(--ease-enter) both;
+}
+@keyframes risk-bar {
+  from {
+    scale: 1 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* §7 Thin progress bar: fills from 0, bright knob at the head, trail  */
+/* ------------------------------------------------------------------ */
+.meter-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--meter, var(--accent-ink)) 25%, transparent), var(--meter, var(--accent-ink)));
+  animation: meter-fill 1.4s var(--ease-enter) both;
+  transition: width 600ms var(--ease-enter);
+}
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  translate: 0 -50%;
+  background: color-mix(in srgb, var(--meter, var(--accent-ink)) 60%, #fff);
+  box-shadow: 0 0 8px 1px var(--accent-glow);
+}
+@keyframes meter-fill {
+  from {
+    width: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* §8 Counters: label fades in 150ms after, number settles with a pop  */
+/* ------------------------------------------------------------------ */
+.stat-label {
+  animation: stat-label 500ms var(--ease-enter) 150ms both;
+}
+@keyframes stat-label {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+.stat-num {
+  display: inline-block;
+  transform-origin: 0 100%;
+  animation: stat-settle 420ms var(--ease-spring) var(--dur-counter) both;
+}
+@keyframes stat-settle {
+  0% {
+    scale: 1;
+  }
+  45% {
+    scale: 1.06;
+  }
+  100% {
+    scale: 1;
+  }
+}
+.score-num {
+  animation: stat-settle 420ms var(--ease-spring) var(--dur-counter) both;
+}

@@ -1,14 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/providers";
+import { RibbonField } from "@/components/ribbon-field";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
+const instrument = Instrument_Serif({
   subsets: ["latin"],
-  variable: "--font-bricolage",
+  weight: "400",
+  style: ["italic"],
+  variable: "--font-instrument",
   display: "swap",
-  axes: ["opsz"],
 });
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
@@ -24,8 +26,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F6FAFD" },
-    { media: "(prefers-color-scheme: dark)", color: "#0A1931" },
+    { media: "(prefers-color-scheme: light)", color: "#F7F7F4" },
+    { media: "(prefers-color-scheme: dark)", color: "#030303" },
   ],
 };
 
@@ -34,9 +36,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${bricolage.variable} ${geist.variable} ${geistMono.variable}`}
+      className={`${instrument.variable} ${geist.variable} ${geistMono.variable}`}
     >
       <body>
+        <RibbonField />
         <a href="#main" className="skip-link">
           Skip to content
         </a>

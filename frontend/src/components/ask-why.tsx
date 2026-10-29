@@ -16,7 +16,6 @@ import type { AskTarget } from "./flowchart";
 import { AiNotice } from "./ai-notice";
 import { EvidenceSnippet } from "./evidence";
 import { CloseIcon } from "./icons";
-import { Spinner } from "./spinner";
 
 type Thread =
   | { step: "asking"; question: string }
@@ -137,11 +136,22 @@ function Sheet({
           {title}
         </h2>
         <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-          <CloseIcon />
+          <CloseIcon className="ico" />
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
     </aside>
+  );
+}
+
+/** Three dots that bounce in turn while an answer is on its way. */
+function TypingDots() {
+  return (
+    <span aria-hidden className="typing-dots">
+      <span />
+      <span />
+      <span />
+    </span>
   );
 }
 
@@ -280,7 +290,7 @@ function AskContent({
         )}
         {thread?.step === "asking" && (
           <p className="flex items-center gap-2 t-small font-medium text-fg-1">
-            <Spinner /> Reading the code
+            <TypingDots /> Reading the code
           </p>
         )}
         {thread?.step === "answered" && (

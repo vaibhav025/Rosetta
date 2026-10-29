@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "../styles/motion-nav.css";
+@import "../styles/motion-hero.css";
+@import "../styles/motion-landing.css";
+@import "../styles/motion-app.css";
+@import "../styles/motion-scroll.css";
 
 /* Hover only on devices that really hover (design.md §9). */
 @custom-variant hover {
@@ -14,16 +19,14 @@
 /* ------------------------------------------------------------------ */
 
 @theme static {
-  --color-abyss: #0a1931;
-  --color-deep: #1a3d63;
-  --color-steel: #4a7fa7;
-  --color-mist: #b3cfe5;
-  --color-paper: #f6fafd;
+  --color-abyss: #000000;
+  --color-paper: #ffffff;
+  --color-lime: #c8f53c;
 
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-xs: 8px;
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -33,8 +36,9 @@
 }
 
 @theme inline {
-  --font-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), "Instrument Serif", ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --color-canvas: var(--bg);
@@ -44,6 +48,10 @@
   --color-fg-2: var(--text-2);
   --color-fg-3: var(--text-3);
   --color-focus: var(--focus);
+  /* Fills (buttons, tiles, progress) vs. ink (icons, rings, text on the page). */
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger);
 
   --shadow-elev-1: var(--elev-1);
@@ -55,9 +63,22 @@
 
 :root {
   --w-read: 640px;
-  --w-app: 1120px;
-  --gutter: clamp(20px, 5vw, 48px);
+  --w-app: 1200px;
+  --gutter: clamp(16px, 5vw, 48px);
   --nav-h: 64px;
+
+  /* Motion system: entrances, hovers, loops, counters. */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-loop: ease-in-out;
+  /* Spring, stiffness 170 / damping 22, sampled over 500ms. */
+  --ease-spring: linear(0, 0.032, 0.109, 0.21, 0.32, 0.43, 0.533, 0.626, 0.706, 0.774, 0.831, 0.876, 0.913, 0.941, 0.962, 0.977, 0.989, 0.996, 1.002, 1.005, 1.006, 1.007, 1.007, 1.006, 1);
+  --dur-enter: 800ms;
+  --dur-hover: 200ms;
+  --dur-spring: 500ms;
+  --dur-counter: 1600ms;
+  --lime-glow-filter: drop-shadow(0 0 12px rgba(200, 245, 60, 0.4));
+  --icon-idle: rgba(255, 255, 255, 0.5);
+  --icon-hover: #ffffff;
 
   --dur-press: 140ms;
   --dur-tooltip: 150ms;
@@ -68,71 +89,110 @@
 
 :root,
 [data-theme="dark"] {
-  --bg: #0a1931;
-  --surface-1: #102642;
-  --surface-2: #142f4f;
-  --surface-3: #1a3a5e; /* hovered secondary button */
-  --text-1: #f6fafd;
-  --text-2: #b3cfe5;
-  --text-3: #8098af;
-  --ring: rgba(179, 207, 229, 0.12);
-  --ring-strong: rgba(179, 207, 229, 0.22);
-  --focus: #4a7fa7;
+  --bg: #000000;
+  --surface-1: #0b0b0b;
+  --surface-2: #151515;
+  --surface-3: #1e1e1e; /* hovered secondary button */
+  --text-1: #ffffff;
+  --text-2: #a8a8a8;
+  --text-3: #8c8c8c;
+  --ring: rgba(255, 255, 255, 0.08);
+  --ring-strong: rgba(255, 255, 255, 0.14);
+  --focus: #c8f53c;
 
-  --btn-primary-bg: #f6fafd;
-  --btn-primary-fg: #0a1931;
-  --btn-primary-hover: #ffffff;
+  --accent: #c8f53c;
+  --accent-fg: #0a0a0a;
+  --accent-ink: #c8f53c;
+  --accent-hover: #d6ff5c;
+  --accent-glow: rgba(200, 245, 60, 0.45);
+
+  --btn-primary-bg: var(--accent);
+  --btn-primary-fg: var(--accent-fg);
+  --btn-primary-hover: var(--accent-hover);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.05);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.09);
   --ghost-fg: var(--text-2);
 
-  --elev-1: 0 0 0 1px var(--ring), 0 1px 2px rgba(10, 25, 49, 0.2);
-  --elev-2: 0 0 0 1px var(--ring), 0 8px 24px -8px rgba(10, 25, 49, 0.45);
-  --elev-3: 0 0 0 1px var(--ring), 0 24px 64px -16px rgba(10, 25, 49, 0.6);
+  --elev-1: 0 0 0 1px var(--ring), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --elev-2: 0 0 0 1px var(--ring-strong), 0 16px 48px -12px rgba(0, 0, 0, 0.8);
+  --elev-3: 0 0 0 1px var(--ring-strong), 0 32px 80px -16px rgba(0, 0, 0, 0.9);
 
-  --glass-bg: rgba(26, 61, 99, 0.45);
-  --glass-sat: 160%;
-  --glass-shadow: inset 0 1px 0 rgba(246, 250, 253, 0.08), 0 0 0 1px rgba(179, 207, 229, 0.14),
-    0 24px 64px -16px rgba(10, 25, 49, 0.6);
-  --glass-highlight: inset 0 1px 0 rgba(246, 250, 253, 0.08);
+  /* Dark glass cards (landing): white at 3–6%, hairline edge, soft inner glow. */
+  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  --panel-edge: inset 0 0 0 1px rgba(255, 255, 255, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 48px rgba(255, 255, 255, 0.02);
 
+  --glass-bg: rgba(6, 6, 6, 0.55);
+  --glass-sat: 140%;
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 24px 64px -16px rgba(0, 0, 0, 0.8);
+  --glass-highlight: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
   --risk-low: #6fc2a0;
   --risk-medium: #e6b85c;
   --risk-high: #e8857e;
   /* Error text: 5.9:1 on surface-1, 6.8:1 on bg (WCAG AA). */
   --danger: #e8857e;
 
-  --ink-a: #1a3d63;
-  --ink-b: #4a7fa7;
+  --risk-low: #c8f53c;
+  --risk-medium: #f5c451;
+  --risk-high: #ff7b6e;
 
   color-scheme: dark;
 }
 
 [data-theme="light"] {
-  --bg: #f6fafd;
-  --surface-1: #ffffff;
-  --surface-2: #e5eff7;
-  --surface-3: #d8e6f2;
-  --text-1: #0a1931;
-  --text-2: #1a3d63;
-  --text-3: #4a6785;
-  --ring: rgba(26, 61, 99, 0.1);
-  --ring-strong: rgba(26, 61, 99, 0.18);
-  --focus: #4a7fa7;
+  /* Green palette: deep #336A29 to pale lime #EAEF9D, kept in the middle range. */
+  --icon-idle: rgba(28, 52, 22, 0.55);
+  --icon-hover: #14200f;
+  --lime-glow-filter: drop-shadow(0 0 10px rgba(110, 160, 20, 0.4));
+  --bg: #f4f5ef;
+  --surface-1: #f2f5d6;
+  --surface-2: #e4ebbf;
+  --surface-3: #d7e1ab;
+  --text-1: #14200f;
+  --text-2: #36452c;
+  --text-3: #4e5e42;
+  --ring: rgba(51, 106, 41, 0.16);
+  --ring-strong: rgba(51, 106, 41, 0.26);
+  --focus: #336a29;
 
-  --btn-primary-bg: #0a1931;
-  --btn-primary-fg: #f6fafd;
-  --btn-primary-hover: #142f4f;
-  --ghost-fg: #1a3d63;
+  --accent: #c8f53c;
+  --accent-fg: #14200f;
+  --accent-ink: #336a29;
+  --accent-hover: #d4fb55;
+  --accent-glow: rgba(120, 175, 20, 0.55);
 
-  --elev-1: 0 0 0 1px var(--ring), 0 1px 2px rgba(10, 25, 49, 0.06);
-  --elev-2: 0 0 0 1px var(--ring), 0 8px 24px -8px rgba(10, 25, 49, 0.14);
-  --elev-3: 0 0 0 1px var(--ring), 0 24px 64px -16px rgba(10, 25, 49, 0.18);
+  --btn-primary-bg: var(--accent);
+  --btn-primary-fg: var(--accent-fg);
+  --btn-primary-hover: var(--accent-hover);
+  --btn-secondary-bg: rgba(51, 106, 41, 0.06);
+  --btn-secondary-hover: rgba(51, 106, 41, 0.12);
+  --ghost-fg: var(--text-2);
 
-  --glass-bg: rgba(246, 250, 253, 0.7);
-  --glass-sat: 180%;
-  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(26, 61, 99, 0.1),
-    0 24px 64px -16px rgba(10, 25, 49, 0.18);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --elev-1: 0 0 0 1px var(--ring), 0 2px 6px rgba(51, 106, 41, 0.08);
+  --elev-2: 0 0 0 1px var(--ring), 0 14px 36px -12px rgba(51, 106, 41, 0.3);
+  --elev-3: 0 0 0 1px var(--ring), 0 26px 64px -16px rgba(51, 106, 41, 0.35);
 
+  /* Cards: green gradient glass with a white edge, like a lit disc. */
+  /* Frosted glass with a faint lime light along the top edge, like the dark cards. */
+  --panel-bg: radial-gradient(120% 70% at 50% 0%, rgba(200, 245, 60, 0.13), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  /* Featured boxes only: a soft lime glass built from the accent #C8F53C. */
+  --panel-lime-bg: radial-gradient(120% 80% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    linear-gradient(140deg, rgba(240, 250, 206, 0.92) 0%, rgba(226, 245, 168, 0.88) 55%, rgba(210, 238, 130, 0.85) 100%);
+  --panel-edge: inset 0 0 0 1px rgba(51, 106, 41, 0.09), inset 0 1px 0 #fff,
+    inset 0 0 40px rgba(200, 245, 60, 0.06), 0 1px 2px rgba(51, 106, 41, 0.05),
+    0 20px 44px -24px rgba(110, 160, 20, 0.32);
+
+  --glass-bg: rgba(247, 247, 244, 0.72);
+  --glass-sat: 150%;
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(51, 106, 41, 0.14),
+    0 24px 64px -16px rgba(51, 106, 41, 0.3);
+  --glass-highlight: inset 0 -1px 0 rgba(51, 106, 41, 0.12);
+
+  --risk-low: #336a29;
+  --risk-medium: #7a5408;
+  --risk-high: #a2362f;
   --risk-low: #2f7d62;
   --risk-medium: #8c6110;
   --risk-high: #b4423b;
@@ -156,6 +216,7 @@
   }
 
   body {
+    /* Sections stay transparent; the ribbon canvas shows through everywhere. */
     background: var(--bg);
     color: var(--text-2);
     font-family: var(--font-sans);
@@ -191,7 +252,7 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--color-steel) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
   }
 }
 
@@ -214,23 +275,23 @@
 
 @utility t-display {
   font-family: var(--font-display);
-  font-size: clamp(2.75rem, 6vw, 4.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-size: clamp(2.75rem, 6.2vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
   font-weight: 600;
 }
 @utility t-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.5vw, 2.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.25rem, 4.4vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
   font-weight: 600;
 }
 @utility t-summary {
   font-family: var(--font-display);
-  font-size: 1.5625rem;
+  font-size: 1.5rem;
   line-height: 1.3;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   font-weight: 500;
 }
 @utility t-heading {
@@ -269,12 +330,434 @@
 @utility press {
   transition:
     transform var(--dur-press) var(--ease-out),
+    translate 200ms var(--ease-out),
     background-color 150ms ease,
     color 150ms ease,
     box-shadow 150ms ease,
     opacity 150ms ease;
   &:active:not(:disabled) {
     transform: scale(0.97);
+  }
+}
+
+/* The signature detail: one word per headline in an italic serif. */
+:is(.t-display, .t-title, .t-summary) em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  padding-right: 0.04em;
+}
+
+/* Tiny mono labels, stats and logs. */
+@utility t-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Eyebrow: tiny rounded pill with a lime dot and a lowercase label. */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--btn-secondary-bg);
+  box-shadow: inset 0 0 0 1px var(--ring-strong);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-2);
+  text-transform: lowercase;
+  &::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    animation: breathe 2.4s var(--ease-loop) infinite;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+  50% {
+    opacity: 0.55;
+    scale: 0.8;
+    box-shadow: 0 0 4px transparent;
+  }
+}
+
+/* Dark glass card: white at 3–6%, hairline edge, blur, soft inner glow. */
+@utility panel {
+  background: var(--panel-bg);
+  box-shadow: var(--panel-edge);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion system (shared)                                              */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Enter-once: wrap a block in <InView>; it carries data-inview="false"
+ * until it scrolls in. Any .iv descendant's CSS animation waits, paused on
+ * its first frame, then plays. Keyframes animate FROM the start state, so
+ * with reduced motion (animation: none) the static end state shows.
+ */
+[data-inview="false"] .iv,
+[data-inview="false"].iv {
+  animation-play-state: paused !important;
+}
+
+/* Icon states: default muted, hover white + 1.08, active lime + glow. */
+.ico {
+  color: var(--icon-idle);
+  transition:
+    color 150ms ease,
+    scale 150ms ease,
+    filter 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ico:hover,
+  :is(a, button, [role="button"]):hover > .ico {
+    color: var(--icon-hover);
+    scale: 1.08;
+  }
+}
+.ico[data-active="true"],
+.ico.is-active {
+  color: var(--accent-ink);
+  filter: var(--lime-glow-filter);
+}
+
+/* Self-drawing stroke: give the path pathLength="1". */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw 1s var(--ease-enter) both;
+}
+
+/* Generic entrance: fade + rise. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+
+/* Glass-card spotlight: border highlight + inner glow follow the pointer. */
+.panel,
+.spot {
+  position: relative;
+}
+:is(.panel, .spot)::before,
+:is(.panel, .spot)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spot, 0);
+  transition: opacity 250ms ease;
+}
+:is(.panel, .spot)::before {
+  padding: 1px;
+  background: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), rgba(200, 245, 60, 0.55), transparent 70%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+:is(.panel, .spot)::after {
+  background: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), rgba(200, 245, 60, 0.12), transparent 70%);
+}
+
+/* Custom cursor: a dot, plus a ring that follows with lag. */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+/* Disabled controls keep the system "not allowed" cursor. */
+html.has-cursor :is(:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed !important;
+}
+/* Same set as TEXT in cursor.tsx: the custom cursor hides there, the caret shows. */
+html.has-cursor :is(input:not([type="checkbox"], [type="radio"]), textarea, [contenteditable="true"]) {
+  cursor: text !important;
+}
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+html.has-cursor .cursor-dot,
+html.has-cursor .cursor-ring {
+  opacity: 1;
+}
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--text-1);
+}
+.cursor-ring {
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 1px solid color-mix(in srgb, var(--text-1) 40%, transparent);
+  transition:
+    width 250ms var(--ease-spring),
+    height 250ms var(--ease-spring),
+    margin 250ms var(--ease-spring),
+    background-color 200ms ease,
+    border-color 200ms ease,
+    opacity 200ms ease;
+}
+.cursor-ring[data-hover] {
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+}
+.cursor-ring[data-hover="button"] {
+  border-color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+html.has-cursor[data-cursor="hidden"] :is(.cursor-dot, .cursor-ring),
+html.has-cursor[data-cursor="text"] :is(.cursor-dot, .cursor-ring) {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Logo tile: glossy lime, dark ">>" that runs                         */
+/* ------------------------------------------------------------------ */
+
+.logo-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 28%;
+  color: #0a0a0a;
+  background: linear-gradient(180deg, #dcff6a 0%, #c8f53c 55%, #b4e02a 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 4px rgba(60, 80, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 calc(var(--tile-size, 26px) * 0.9) var(--accent-glow);
+  transition:
+    scale var(--dur-spring) var(--ease-spring),
+    box-shadow 250ms ease;
+}
+.logo-tile:active,
+:is(a, button):active > .logo-tile {
+  scale: 0.94;
+  transition-duration: 120ms;
+}
+.logo-tile .chev {
+  transition: translate 250ms var(--ease-spring);
+  animation: chev-run 3s var(--ease-loop) infinite;
+}
+.logo-tile .chev-2 {
+  transition-delay: 60ms;
+  animation-delay: 120ms;
+}
+@keyframes chev-run {
+  0%,
+  70%,
+  100% {
+    translate: 0 0;
+    opacity: 1;
+  }
+  82% {
+    translate: 4px 0;
+    opacity: 0.35;
+  }
+  83% {
+    translate: -2px 0;
+    opacity: 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.logo-tile, a, button):hover > .logo-tile,
+  .logo-tile:hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -2px 4px rgba(60, 80, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 0 calc(var(--tile-size, 26px) * 1.6) rgba(200, 245, 60, 0.6);
+  }
+  :is(a, button):hover > .logo-tile .chev,
+  .logo-tile:hover .chev {
+    animation: none;
+    translate: 3px 0;
+  }
+}
+
+/* Glowing lime tile (logo, icon tiles). */
+@utility lime-tile {
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+    0 0 24px var(--accent-glow);
+}
+
+/* Icons float with a gentle glow. */
+@keyframes float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -6px;
+  }
+}
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* One fixed, full-screen ribbon canvas behind the whole site (ribbon-field.tsx). */
+.ribbon-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ribbon-field {
+  will-change: filter;
+  /* Bright like the reference in the hero; the middle aurora is dimmed in the canvas. */
+  opacity: 0.65;
+}
+.ribbon-field canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Bloom: a blurred copy of the ribbons, screened on top. */
+.ribbon-field .ribbon-glow {
+  filter: blur(14px) saturate(1.3);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+[data-theme="light"] .panel-lime {
+  background: var(--panel-lime-bg);
+  box-shadow:
+    inset 0 0 0 1px rgba(110, 160, 20, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 48px rgba(255, 255, 255, 0.25),
+    0 1px 2px rgba(90, 130, 0, 0.06),
+    0 22px 48px -24px rgba(120, 175, 20, 0.42);
+}
+[data-theme="light"] .ribbon-field {
+  opacity: 0.75;
+}
+[data-theme="light"] .ribbon-field .ribbon-glow {
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+}
+
+/* Glass cards lift with a soft lime glow on hover (both themes). */
+.panel {
+  transition:
+    translate var(--dur-spring) var(--ease-spring),
+    box-shadow 300ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .panel:hover {
+    translate: 0 -3px;
+    box-shadow:
+      var(--panel-edge),
+      0 0 0 1px color-mix(in srgb, var(--accent-ink) 30%, transparent),
+      0 24px 56px -24px var(--accent-glow);
+  }
+}
+/* Light theme: a touch of lime light so it isn't flat. */
+[data-theme="light"] .eyebrow {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    inset 0 0 0 1px rgba(30, 45, 0, 0.1),
+    0 4px 14px -6px var(--accent-glow);
+}
+[data-theme="light"] .btn-primary {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 8px 26px -8px var(--accent-glow),
+    0 0 0 1px rgba(110, 150, 0, 0.25);
+}
+[data-theme="light"] .logo-tile {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 4px rgba(60, 80, 0, 0.2),
+    0 0 0 1px rgba(90, 130, 0, 0.25),
+    0 4px calc(var(--tile-size, 26px) * 0.8) var(--accent-glow);
+}
+/* Light: the pointer spotlight is a soft lime edge, not a glare. */
+[data-theme="light"] :is(.panel, .spot)::after {
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(200, 245, 60, 0.16), transparent 70%);
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="light"] .panel:hover {
+    box-shadow:
+      var(--panel-edge),
+      0 0 0 1px rgba(110, 160, 20, 0.22),
+      0 26px 56px -24px rgba(120, 175, 20, 0.45);
+  }
+}
+@media print {
+  .ribbon-field {
+    display: none;
+  }
+}
+
+/* The hero window: darker glass so the light behind it stays a glow. */
+.window-glass {
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.66), rgba(8, 8, 8, 0.76));
+  backdrop-filter: blur(28px) saturate(140%);
+}
+[data-theme="light"] .window-glass {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -297,6 +780,14 @@
 /* Bars that span the viewport: scroll edge, not divider. */
 .glass-flat {
   box-shadow: var(--glass-highlight);
+}
+
+/* The landing flowchart card sits in dark glass like its neighbours. */
+.landing-flow > section {
+  background: var(--panel-bg);
+  box-shadow: var(--panel-edge);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
 }
 
 /* Never glass on glass: a toast over the open sheet goes solid. */
@@ -542,13 +1033,13 @@ html[data-sheet-open] .glass.toast {
 .flow[data-panel="after"] .node.changed rect,
 .flow[data-panel="after"] .node.changed polygon,
 .flow[data-panel="after"] .node.changed path {
-  stroke: var(--color-steel) !important;
+  stroke: var(--accent-ink) !important;
   stroke-width: 2px !important;
 }
 
 /* Groups: a dashed box with a quiet title. */
 .flow .cluster rect {
-  fill: color-mix(in srgb, var(--color-steel) 6%, transparent) !important;
+  fill: color-mix(in srgb, var(--accent-ink) 5%, transparent) !important;
   stroke: var(--ring-strong) !important;
   stroke-dasharray: 4 4;
   rx: 14px;
@@ -608,12 +1099,12 @@ html[data-sheet-open] .glass.toast {
 .flow[data-tracing] .node.is-on rect,
 .flow[data-tracing] .node.is-on polygon,
 .flow[data-tracing] .node.is-on path {
-  stroke: var(--color-steel) !important;
+  stroke: var(--accent-ink) !important;
   stroke-width: 2px !important;
-  fill: color-mix(in srgb, var(--color-steel) 22%, var(--surface-2)) !important;
+  fill: color-mix(in srgb, var(--accent-ink) 16%, var(--surface-2)) !important;
 }
 .flow[data-tracing] .flowchart-link.is-on {
-  stroke: var(--color-steel) !important;
+  stroke: var(--accent-ink) !important;
   stroke-width: 2.5px !important;
 }
 
@@ -626,7 +1117,7 @@ html[data-sheet-open] .glass.toast {
   .flow .node[data-ask]:hover rect,
   .flow .node[data-ask]:hover polygon,
   .flow .node[data-ask]:hover path {
-    stroke: var(--color-mist) !important;
+    stroke: var(--text-1) !important;
   }
 }
 .flow .node[data-ask]:focus-visible rect,
@@ -768,4 +1259,160 @@ main:focus {
 }
 [data-theme="light"] .tone-pill svg {
   color: var(--tone, var(--risk));
+}
+
+/* "How it works" — a lime light runs around the border, arrows flow. */
+@property --how-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes how-spin {
+  to {
+    --how-angle: 360deg;
+  }
+}
+@keyframes how-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+[data-theme="light"] .how-card {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(200, 245, 60, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.66));
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 0 0 1px rgba(51, 106, 41, 0.1),
+    0 24px 60px -28px rgba(120, 175, 20, 0.45);
+}
+.how-card::before,
+.how-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 2px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--how-angle),
+    rgba(160, 215, 30, 0.28) 0deg,
+    rgba(160, 215, 30, 0.28) 200deg,
+    #c8f53c 280deg,
+    #e8ff96 320deg,
+    #8cc614 350deg,
+    rgba(160, 215, 30, 0.28) 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: how-spin 7s linear infinite;
+}
+.how-card {
+  position: relative;
+  isolation: isolate;
+}
+/* Dark: the flowing lines get the same lime glow. */
+[data-theme="dark"] .how-card .flow .flowchart-link,
+:root:not([data-theme]) .how-card .flow .flowchart-link {
+  stroke: rgba(200, 245, 60, 0.7) !important;
+  filter: drop-shadow(0 0 3px rgba(200, 245, 60, 0.6));
+}
+/* Same light, blurred: the glow that spills off the edge. */
+.how-card::after {
+  padding: 4px;
+  filter: blur(8px);
+  opacity: 0.85;
+}
+[data-theme="light"] .how-walk {
+  background: linear-gradient(140deg, rgba(240, 250, 206, 0.9), rgba(220, 242, 150, 0.8));
+  box-shadow:
+    inset 0 0 0 1px rgba(110, 160, 20, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 14px 32px -20px rgba(120, 175, 20, 0.5);
+}
+.how-card .flow .flowchart-link {
+  stroke-dasharray: 6 5 !important;
+  animation: how-flow 1.4s linear infinite;
+}
+[data-theme="light"] .how-card .flow[data-panel="after"] .node.changed {
+  filter: drop-shadow(0 0 6px rgba(160, 215, 30, 0.55));
+}
+[data-theme="light"] .how-card .flow .node:not(.is-on) rect,
+[data-theme="light"] .how-card .flow .node:not(.is-on) polygon {
+  fill: rgba(238, 246, 205, 0.95) !important;
+}
+/* Boxes drift gently, out of step; the lines glow as they flow. */
+@keyframes how-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -3px;
+  }
+}
+.how-card .flow .node {
+  animation: how-bob 3.6s ease-in-out infinite;
+}
+.how-card .flow .node:nth-child(3n + 2) {
+  animation-delay: -1.2s;
+}
+.how-card .flow .node:nth-child(3n) {
+  animation-delay: -2.4s;
+}
+[data-theme="light"] .how-card .flow .flowchart-link {
+  stroke: #5e8f1c !important;
+  filter: drop-shadow(0 0 3px rgba(170, 225, 40, 0.75));
+}
+[data-theme="light"] .how-card .flow .node rect,
+[data-theme="light"] .how-card .flow .node polygon {
+  filter: drop-shadow(0 4px 8px rgba(120, 175, 20, 0.22));
+}
+@media (prefers-reduced-motion: reduce) {
+  .how-card::before,
+  .how-card::after,
+  .how-card .flow .flowchart-link,
+  .how-card .flow .node {
+    animation: none;
+  }
+}
+
+/* Dark: text on glass stays readable when the lime light passes behind it.
+   A darker frosted base, brighter secondary text and a faint dark halo. */
+:root:not([data-theme="light"]) :is(.panel, .how-card, .window-glass) {
+  --text-2: #d6d6d6;
+  --text-3: #b4b4b4;
+  background-color: rgba(0, 0, 0, 0.42);
+}
+:root:not([data-theme="light"]) :is(.panel, .how-card, .window-glass) :is(h1, h2, h3, h4, p, li, span, figcaption, dd, dt) {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+:root:not([data-theme="light"]) :is(.panel, .how-card) :is(h2, h3) {
+  color: #fff;
+  text-shadow: 0 0 14px rgba(200, 245, 60, 0.18), 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+/* Light theme, legal and contact pages: the rainbow steps back behind long text. */
+[data-theme="light"] body:has(.legal) .ribbon-field {
+  opacity: 0.3;
+}
+/* Phones: footer links get a bigger tap area without moving the text. */
+@media (max-width: 767px) {
+  .foot-link {
+    position: relative;
+  }
+  .foot-link::before {
+    content: "";
+    position: absolute;
+    inset: -8px -6px;
+  }
 }
