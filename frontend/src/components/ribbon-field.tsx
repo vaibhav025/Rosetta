@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 /**
@@ -37,6 +38,13 @@ const COLORS = ["200,245,60", "232,255,150", "150,235,90", "70,220,200", "79,168
 /** Light theme: the six classic rainbow stripes — green, yellow, orange, red, purple, blue. */
 const RAINBOW = ["122,185,41", "254,197,43", "255,102,28", "209,15,42", "174,27,174", "1,160,224"];
 const SAMPLES = 56;
+/**
+ * Frame budget. Every glass panel blurs what's behind it, so each canvas frame
+ * re-blurs the whole page: 30 fps on the landing page instead of the display's
+ * 60–144. Inside the app (lists of glass cards) the ribbon draws in, then holds
+ * still, redrawing only when scroll, size or theme move it.
+ */
+const FRAME_MS = 1000 / 30;
 
 function rng(seed: number) {
   return () => {
@@ -101,6 +109,9 @@ export function RibbonField() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glowRef = useRef<HTMLCanvasElement>(null);
+  const landing = useRef(true);
+  const pathname = usePathname();
+  landing.current = pathname === "/";
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -204,7 +215,8 @@ export function RibbonField() {
     let w = 0;
     let h = 0;
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 1.75);
+      // Soft light behind blurred glass: extra pixels cost a lot and show little.
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = Math.round(w * dpr);
@@ -298,8 +310,23 @@ export function RibbonField() {
       return [x, y];
     };
 
+    let dirty = true;
+    let lastLight: boolean | null = null;
     const frame = (now: number) => {
+      if (now - last < FRAME_MS) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       const light = document.documentElement.dataset.theme === "light";
+      // In the app, hold still once settled: nothing to redraw, nothing to re-blur.
+      const settled = intro >= 1 && Math.abs(target - stage) < 1e-3 && Math.abs(flowTarget - flow) < 1e-3;
+      if (!landing.current && settled && !dirty && light === lastLight) {
+        last = now;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      dirty = false;
+      lastLight = light;
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       // Always moving (the owner wants it alive); gentler with reduced motion.
@@ -431,6 +458,7 @@ export function RibbonField() {
     const onResize = () => {
       resize();
       onScroll();
+      dirty = true;
     };
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", onScroll, { passive: true });

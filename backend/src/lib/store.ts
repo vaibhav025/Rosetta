@@ -50,7 +50,9 @@ class FirestoreStore implements Store {
           }),
         });
       const db = getFirestore(app);
-      db.settings({ ignoreUndefinedProperties: true });
+      // REST instead of gRPC: no long-lived channel to warm up or retry for ~20 s
+      // when DNS or the network blips, and faster cold starts on serverless.
+      db.settings({ ignoreUndefinedProperties: true, preferRest: true });
       return db;
     })();
   }

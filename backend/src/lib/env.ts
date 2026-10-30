@@ -12,7 +12,8 @@ export const env = {
    */
   githubAppId: process.env.GITHUB_APP_ID || "",
   githubAppPrivateKey: (process.env.GITHUB_APP_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
-  githubAppSlug: process.env.GITHUB_APP_SLUG || "",
+  // The App's URL name; a pasted github.com/apps/<slug> URL works too.
+  githubAppSlug: (process.env.GITHUB_APP_SLUG || "").trim().replace(/^.*\/apps\//, "").replace(/\/+$/, ""),
   githubAppWebhookSecret: process.env.GITHUB_APP_WEBHOOK_SECRET || "",
   /** The App's OAuth client, for "Link your GitHub account" (and confirming who installed it). */
   githubAppClientId: process.env.GITHUB_APP_CLIENT_ID || "",
