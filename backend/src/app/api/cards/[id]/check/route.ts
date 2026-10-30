@@ -11,6 +11,7 @@ import { canReview, canSeeCard, isLead, isTechnical, orgMembers } from "@/lib/or
 import { limit } from "@/lib/ratelimit";
 import { store } from "@/lib/store";
 import type { StoredCard, Verification } from "@/lib/types";
+import { impactText } from "@/lib/codegraph";
 import { codeChecks, evidenceFor, judgeCached, RETRY_BELOW, type Judged } from "@/lib/verify";
 
 export const dynamic = "force-dynamic";
@@ -85,7 +86,8 @@ export const POST = route<Ctx>(async (req, { params }) => {
       };
     });
 
-    const issues = codeChecks(e, { message, files });
+    const context = impactText(card.impact);
+    const issues = codeChecks(e, { message, files, context });
     if (boxesUnmatched(e, evidence, files)) issues.push("Most flowchart steps can't be matched to lines in the diff. Name the steps after what the code really does.");
     const wordIssues = issues.filter((i) => /technical words/.test(i));
     const nameIssues = issues.filter((i) => /don't appear in the diff/.test(i));
@@ -100,7 +102,7 @@ export const POST = route<Ctx>(async (req, { params }) => {
 
     let judged: Judged | null = null;
     await step("judge", async () => {
-      judged = pitch ? PITCH_JUDGE : aiConfigured() ? await judgeCached(e, { message, diff: diffText(files), orgId: card.orgId }) : null;
+      judged = pitch ? PITCH_JUDGE : aiConfigured() ? await judgeCached(e, { message, diff: diffText(files), orgId: card.orgId, context }) : null;
       return judged
         ? { detail: `Second model scored accuracy, completeness, flowchart and reader fit: ${(judged as Judged).score}/100` }
         : { detail: "Second model unavailable right now, so this uses the rules only", state: "warn" };

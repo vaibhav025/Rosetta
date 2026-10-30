@@ -23,6 +23,7 @@ import { Editable } from "./editable";
 import { FilesList } from "./files-list";
 import { HowItWorks, type AskTarget } from "./flowchart";
 import { GitHubIcon } from "./icons";
+import { ImpactPanel } from "./impact";
 import { PersonLine, SampleTag } from "./person";
 import { RiskBadge } from "./risk-badge";
 import { StoryCard } from "./story-card";
@@ -354,6 +355,8 @@ function LoadedCard({ card, onCardChange }: { card: CardData; onCardChange: (car
         {card.truncated && (
           <p className="mt-6 t-small text-fg-2">This change is large, so Rosetta summarized the {card.truncated.shownFiles} most changed files.</p>
         )}
+
+        {card.impact && <ImpactPanel impact={card.impact} className="mt-16" />}
 
         <div className="mt-16 flex flex-wrap items-end justify-between gap-4">
           <FilesList files={card.files} className="min-w-0 flex-1" />

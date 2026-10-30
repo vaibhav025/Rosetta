@@ -57,9 +57,12 @@ export function publicCard(card: StoredCard, viewer: User, users: User[]) {
   const full = reviewer || isTechnical(viewer.role);
   const levels: Partial<Explanation["levels"]> = full ? card.explanation.levels : { [viewer.role]: card.explanation.levels[viewer.role] };
   const explanation = { ...card.explanation, levels, ...(v && !full ? { verification: { ...v, issues: [] } } : {}) };
+  // File names are for people who read code; everyone else gets how far it reaches.
+  const impact = card.impact && (full ? card.impact : { reach: card.impact.reach, totalFiles: card.impact.totalFiles, direct: card.impact.direct.length, entryPoints: card.impact.entryPoints.length, broken: card.impact.broken.length });
   return {
     ...(rest as Card & Pick<StoredCard, "orgId" | "source" | "createdAt" | "authorUserId" | "reports">),
     explanation,
+    ...(impact ? { impact } : {}),
     authorPerson: authorUser ? personOf(authorUser, users) : null,
     viewer: {
       level: viewer.role,

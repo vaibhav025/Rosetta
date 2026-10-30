@@ -399,7 +399,30 @@ export type CardView = Card & {
   reports?: number;
   /** A ready question to offer in Ask Why (the pitch commit has one). */
   suggestedQuestion?: string;
+  /** What the change reaches beyond its diff: in full for people who read code, counts for everyone else. */
+  impact?: Impact | ImpactBrief;
 };
+
+export type Reach = "none" | "contained" | "moderate" | "wide";
+
+export type Impact = {
+  changed: { file: string; status: string; symbols: string[]; added?: string[]; removed?: string[] }[];
+  direct: { file: string; uses: string[] }[];
+  indirect: { file: string; depth: number; via: string }[];
+  broken: { file: string; names: string[]; from: string }[];
+  areas: { name: string; files: number }[];
+  entryPoints: string[];
+  totalFiles: number;
+  capped?: true;
+  reach: Reach;
+  edges: [string, string][];
+  mapFiles: number;
+  mapSha?: string;
+};
+
+export type ImpactBrief = { reach: Reach; totalFiles: number; direct: number; entryPoints: number; broken: number };
+
+export const isFullImpact = (i: Impact | ImpactBrief): i is Impact => Array.isArray(i.direct);
 
 export type TicketSummary = {
   id: string;

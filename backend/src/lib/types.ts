@@ -1,3 +1,4 @@
+import type { Impact } from "./codegraph/impact";
 import type { LevelKey } from "./levels";
 
 export type Risk = "low" | "medium" | "high";
@@ -78,6 +79,8 @@ export type Card = {
   files: FileChange[];
   truncated?: { shownFiles: number };
   explanation: Explanation;
+  /** What the change reaches beyond its diff, from the repository map (watched repos only). */
+  impact?: Impact;
 };
 
 export type EditableField = "summary" | "analogy" | "impact";

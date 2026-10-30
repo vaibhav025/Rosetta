@@ -41,7 +41,7 @@ function textsOf(e: Explanation, level: LevelKey) {
 }
 
 /** Problems a reviewer can confirm by reading the code, no model needed. */
-export function codeChecks(e: Explanation, input: { message: string; files: RawFile[] }) {
+export function codeChecks(e: Explanation, input: { message: string; files: RawFile[]; context?: string }) {
   const issues: string[] = [];
 
   // 1. Code words in text for people who don't read code.
@@ -187,13 +187,13 @@ export type Judged = { score: number; issues: string[] };
 export const needsReview = (v: Pick<Verification, "score" | "checkedBy">) => v.checkedBy === "code" || v.score < RETRY_BELOW;
 
 /** The same explanation of the same diff always gets the same score, and costs one model call ever. */
-export async function judgeCached(e: Explanation, input: { message: string; diff: string; orgId?: string }): Promise<Judged | null> {
+export async function judgeCached(e: Explanation, input: { message: string; diff: string; orgId?: string; context?: string }): Promise<Judged | null> {
   const { verification: _v, evidence: _e, ...content } = e;
-  const id = createHash("sha256").update(JSON.stringify([content, input.message, input.diff])).digest("hex").slice(0, 32);
+  const id = createHash("sha256").update(JSON.stringify([content, input.message, input.diff, ...(input.context ? [input.context] : [])])).digest("hex").slice(0, 32);
   const hit = await store.get<Judged>("checks", id).catch(() => null);
   if (hit) return hit;
   try {
-    const judged = await judgeExplanation({ message: input.message, diff: input.diff, explanation: e, orgId: input.orgId });
+    const judged = await judgeExplanation({ message: input.message, diff: input.diff, explanation: e, orgId: input.orgId, context: input.context });
     await store.set("checks", id, judged).catch(() => {});
     return judged;
   } catch {
@@ -204,7 +204,7 @@ export async function judgeCached(e: Explanation, input: { message: string; diff
 
 export async function verify(
   e: Explanation,
-  input: { message: string; diff: string; files: RawFile[]; orgId?: string },
+  input: { message: string; diff: string; files: RawFile[]; orgId?: string; context?: string },
   opts: { useAi: boolean },
 ): Promise<Omit<Verification, "retried" | "needsReview">> {
   const code = codeChecks(e, input);

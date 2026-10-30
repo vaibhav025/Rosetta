@@ -13,6 +13,8 @@ export type RawFile = {
   changes: number;
   patch?: string;
   blob_url: string;
+  /** The old path, when the file was renamed. */
+  previous_filename?: string;
 };
 
 export type Change = {
@@ -27,6 +29,8 @@ export type Change = {
   files: RawFile[];
   /** How many parents a commit has: 2 or more is a merge. Missing for pull requests. */
   parents?: number;
+  /** The commit before this one (its first parent), for the repository map. Missing for pull requests. */
+  parentSha?: string;
 };
 
 class GitHubError extends Error {
@@ -80,7 +84,7 @@ async function request(path: string, init?: RequestInit, auth: Auth = {}): Promi
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...init?.headers,
       },
-      signal: AbortSignal.timeout(15_000),
+      signal: init?.signal ?? AbortSignal.timeout(15_000),
     });
   } catch {
     throw new ApiError("network");
@@ -163,6 +167,7 @@ export async function fetchChange(link: ParsedLink, orgId?: string): Promise<Cha
         committedAt: c.commit.author.date,
         files: c.files ?? [],
         parents: c.parents?.length,
+        ...(c.parents?.[0]?.sha ? { parentSha: c.parents[0].sha } : {}),
       };
     }
 
@@ -185,6 +190,44 @@ export async function fetchChange(link: ParsedLink, orgId?: string): Promise<Cha
   } catch (error) {
     return mapError(error, link, auth);
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Whole repositories, for the repository map (lib/codegraph)          */
+/* ------------------------------------------------------------------ */
+
+const encodePath = (p: string) => p.split("/").map(encodeURIComponent).join("/");
+
+/**
+ * The repository at a commit, as a gzipped tar stream. GitHub redirects to
+ * codeload with a short-lived token of its own, so private repos work too.
+ */
+export async function repoTarball(repo: string, ref: string, orgId?: string, timeoutMs = 120_000) {
+  const res = await request(`/repos/${repo}/tarball/${encodeURIComponent(ref)}`, { signal: AbortSignal.timeout(timeoutMs) }, { orgId });
+  if (!res.body) throw new ApiError("unavailable");
+  return res.body;
+}
+
+/** One file's text at a commit, or null when it isn't there (deleted, or never existed). */
+export async function fileAt(repo: string, path: string, ref: string, orgId?: string): Promise<string | null> {
+  try {
+    const res = await request(`/repos/${repo}/contents/${encodePath(path)}?ref=${encodeURIComponent(ref)}`, { headers: { Accept: "application/vnd.github.raw+json" } }, { orgId });
+    return await res.text();
+  } catch (error) {
+    if (error instanceof GitHubError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+/** The newest commit on a branch (the default one when `branch` is missing). */
+export async function latestCommit(repo: string, orgId?: string, branch?: string) {
+  const [c] = await gh<{ sha: string; commit: { committer: { date: string } | null; author: { date: string } } }[]>(
+    `/repos/${repo}/commits?per_page=1${branch ? `&sha=${encodeURIComponent(branch)}` : ""}`,
+    undefined,
+    { orgId },
+  );
+  if (!c) throw new ApiError("not_found");
+  return { sha: c.sha, date: c.commit.committer?.date ?? c.commit.author.date };
 }
 
 /** Short-lived memory cache: Ask Why needs the diff, but diffs are never stored. */

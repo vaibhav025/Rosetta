@@ -81,7 +81,7 @@ export async function removeMember(org: Org, member: StoredUser, users: StoredUs
 
 /** Deletes a workspace and everything in it, including every member's account. */
 export async function deleteWorkspace(org: Org) {
-  const collections = ["users", "cards", "comments", "tickets", "notifications", "jobs"] as const;
+  const collections = ["users", "cards", "comments", "tickets", "notifications", "jobs", "graphs", "graph_chunks"] as const;
   const docs = await Promise.all(collections.map((c) => store.list<{ id: string; inviteCode?: string }>(c, "orgId", org.id)));
   const [users, cards] = docs;
   // Tombstones for changes the workspace deleted. Older ones don't record their id (the card id), so they stay.

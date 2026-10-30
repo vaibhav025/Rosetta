@@ -6,7 +6,7 @@ import { parseGitHubLink } from "@/lib/github-url";
 import { ApiError, ndjson, pause, preflight, readJson, route } from "@/lib/http";
 import { isPitchLink } from "@/lib/demo/pitch";
 import { explainPitch } from "@/lib/demo/pitch-card";
-import { explanationFor, prepare, toCard, type Stage } from "@/lib/ingest";
+import { explanationFor, prepare, prepareWithImpact, toCard, type Stage } from "@/lib/ingest";
 import { canReview, canSeeCard, isTechnical, orgMembers, requireOrg } from "@/lib/org";
 import { limit } from "@/lib/ratelimit";
 import { store } from "@/lib/store";
@@ -93,7 +93,7 @@ export const POST = route(async (req) => {
     };
   }
 
-  const prepared = prepare(change);
+  const prepared = demo ? prepare(change) : await prepareWithImpact(change, org);
   if (demo) {
     prepared.findings = demo.findings;
     prepared.reading = demo.reading;

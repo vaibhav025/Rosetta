@@ -21,7 +21,9 @@ export type Collection =
   | "notifications"
   | "checks"
   | "deleted"
-  | "jobs";
+  | "jobs"
+  | "graphs"
+  | "graph_chunks";
 
 interface Store {
   get<T>(collection: Collection, id: string): Promise<T | null>;

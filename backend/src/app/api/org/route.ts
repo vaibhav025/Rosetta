@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { buildLatest, dropGraph } from "@/lib/codegraph";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { GitHubAppError, listInstallationRepos } from "@/lib/github-app";
@@ -8,6 +10,8 @@ import { store } from "@/lib/store";
 import type { Org } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+// Mapping a newly watched repository runs after the answer, and can take a minute.
+export const maxDuration = 300;
 export const OPTIONS = preflight;
 
 const repoName = z
@@ -70,5 +74,14 @@ export const PATCH = route(async (req) => {
     branches,
   };
   await store.set("orgs", org.id, next);
+  // Map newly watched repos now, so their first push is measured without waiting; forget dropped ones.
+  const added = repos.filter((r) => !org.repos.includes(r));
+  const dropped = org.repos.filter((r) => !repos.includes(r));
+  if (added.length || dropped.length) {
+    after(async () => {
+      for (const r of dropped) await dropGraph(org.id, r).catch(() => {});
+      for (const r of added) await buildLatest(org, r);
+    });
+  }
   return json({ org: { id: next.id, name: next.name, repos: next.repos, branches: next.branches ?? {} } });
 });
