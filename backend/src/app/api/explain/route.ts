@@ -1,3 +1,4 @@
+import { linkFromMessage } from "@/lib/tasks";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { demoSampleFor, publicCard, resolveCardId } from "@/lib/cards";
@@ -126,6 +127,7 @@ export const POST = route(async (req) => {
     }
     const next: StoredCard = latest ? { ...card, createdAt: latest.createdAt, ...(latest.reports ? { reports: latest.reports } : {}) } : card;
     await store.set("cards", id, next);
-    return publicCard(next, me, users);
+    // A task key in the message ("ROS-12: …") links the task, as it does for pushes.
+    return publicCard(demo ? next : await linkFromMessage(org, next, prepared.change.message, users), me, users);
   });
 });

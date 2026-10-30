@@ -11,10 +11,11 @@ import type { LevelKey } from "@/lib/levels";
 import { errorText } from "@/lib/errors";
 import { isLead, isTechnical, roleLabel, roleNoun, ROLES, tabsFor } from "@/lib/roles";
 import { EDITS_PREFIX, useSession } from "@/lib/session";
-import type { CardEdits, CardView as CardData, CommentView, EditableField } from "@/lib/types";
+import type { CardEdits, CardTask, CardView as CardData, CommentView, EditableField } from "@/lib/types";
 import { langFor } from "@/lib/lang";
 import { cn, firstName, timeAgo } from "@/lib/utils";
 import { AskWhy, ReportMistake } from "./ask-why";
+import { StatusPill } from "./board";
 import { Button, buttonStyles } from "./button";
 import { CheckAccuracy } from "./check-accuracy";
 import { ConfidenceBadge } from "./confidence";
@@ -22,7 +23,7 @@ import { DeleteChange, TrashIcon } from "./delete-change";
 import { Editable } from "./editable";
 import { FilesList } from "./files-list";
 import { HowItWorks, type AskTarget } from "./flowchart";
-import { GitHubIcon } from "./icons";
+import { CloseIcon, GitHubIcon } from "./icons";
 import { ImpactPanel } from "./impact";
 import { PersonLine, SampleTag } from "./person";
 import { RiskBadge } from "./risk-badge";
@@ -260,6 +261,8 @@ function LoadedCard({ card, onCardChange }: { card: CardData; onCardChange: (car
           />
         </div>
 
+        {(card.tasks?.length || card.viewer.canLinkTasks) && <TaskLinks cardId={card.id} initial={card.tasks ?? []} canLink={Boolean(card.viewer.canLinkTasks)} />}
+
         <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
           <p className="t-small text-fg-2">
             {levelKey === card.viewer.level ? `Explained for you as ${roleNoun(levelKey)}.` : `This is what ${roleNoun(levelKey)} reads.`}
@@ -490,6 +493,103 @@ function Comments({ card, comments, onAdd }: { card: CardData; comments: Comment
           </Button>
         </form>
       )}
+    </section>
+  );
+}
+
+/** The tasks this change counts towards. Engineers link more by key, or take one off. */
+function TaskLinks({ cardId, initial, canLink }: { cardId: string; initial: CardTask[]; canLink: boolean }) {
+  const [tasks, setTasks] = useState(initial);
+  const [adding, setAdding] = useState(false);
+  const [key, setKey] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  const link = async (e: FormEvent) => {
+    e.preventDefault();
+    const wanted = key.trim().toUpperCase();
+    if (!wanted) return;
+    setBusy(true);
+    try {
+      setTasks((await api.linkCardTask(cardId, wanted)).tasks);
+      setKey("");
+      setAdding(false);
+      toast(`Linked to ${wanted}.`);
+    } catch (err) {
+      toast(errorText(err, `Couldn't link ${wanted}. Check the key, for example ROS-12.`));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const unlink = async (taskKey: string) => {
+    setRemoving(taskKey);
+    try {
+      setTasks((await api.unlinkCardTask(cardId, taskKey)).tasks);
+      toast(`No longer linked to ${taskKey}.`);
+    } catch (err) {
+      toast(errorText(err, "That didn't unlink. Try again in a minute."));
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  return (
+    <section aria-labelledby="tasks-heading" className="mt-4 flex flex-wrap items-center gap-2">
+      <h2 id="tasks-heading" className="mr-1 t-small text-fg-3">
+        {tasks.length ? "Tasks" : "No task linked"}
+      </h2>
+      <ul className="contents">
+        {tasks.map((t) => (
+          <li key={t.key} className="inline-flex max-w-full items-center rounded-xs bg-surface-1 shadow-ring">
+            <Link href={`/app/tasks/${encodeURIComponent(t.key)}`} className="press inline-flex min-w-0 items-center gap-2 rounded-xs py-1 pr-2 pl-2.5 t-small hover:text-fg-1">
+              <span className="t-mono text-fg-3">{t.key}</span>
+              <span className="truncate text-fg-1">{t.title}</span>
+              <StatusPill status={t.status} className="h-5" />
+            </Link>
+            {canLink && (
+              <button
+                type="button"
+                onClick={() => unlink(t.key)}
+                disabled={removing === t.key}
+                aria-label={`Unlink ${t.key}`}
+                className="press mr-1 grid size-7 shrink-0 place-items-center rounded-xs text-fg-3 hover:bg-surface-2 hover:text-(--risk-high) disabled:opacity-40 pointer-coarse:size-11"
+              >
+                <CloseIcon size={14} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {canLink &&
+        (adding ? (
+          <form onSubmit={link} className="flex items-center gap-2">
+            <label htmlFor="link-task" className="sr-only">
+              Task key
+            </label>
+            <input
+              id="link-task"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setAdding(false)}
+              placeholder="ROS-12"
+              autoFocus
+              autoCapitalize="characters"
+              spellCheck={false}
+              className="h-8 w-28 rounded-xs bg-surface-1 px-2.5 font-mono t-small text-fg-1 uppercase shadow-ring-strong outline-none placeholder:text-fg-3 placeholder:normal-case focus-visible:shadow-[0_0_0_2px_var(--focus)] pointer-coarse:h-11"
+            />
+            <Button type="submit" loading={busy} disabled={!key.trim()} className="h-8! px-3! pointer-coarse:h-11!">
+              Link
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setAdding(false)} className="h-8! px-3! pointer-coarse:h-11!">
+              Cancel
+            </Button>
+          </form>
+        ) : (
+          <Button variant="ghost" onClick={() => setAdding(true)} className="h-8! px-3! pointer-coarse:h-11!">
+            Link to task
+          </Button>
+        ))}
     </section>
   );
 }

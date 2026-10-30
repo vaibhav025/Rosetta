@@ -219,7 +219,7 @@ export const personChip = (p: Person) => (
 export type ToolsValue = { q: string; days: string; risk: string; repo: string };
 export const NO_TOOLS: ToolsValue = { q: "", days: "", risk: "", repo: "" };
 
-const selectClass =
+export const selectClass =
   "h-9 shrink-0 cursor-pointer rounded-sm bg-surface-1 pr-8 pl-3 t-small text-fg-1 shadow-ring outline-none focus-visible:shadow-[0_0_0_2px_var(--focus)] pointer-coarse:h-11";
 
 /** Search in your own words, plus date, risk and repository. */

@@ -346,7 +346,7 @@ export type Feed = {
 
 export type NotificationItem = {
   id: string;
-  kind: "question" | "reply" | "report" | "change" | "reviewed" | "joined";
+  kind: "question" | "reply" | "report" | "change" | "reviewed" | "joined" | "task";
   title: string;
   href: string;
   read: boolean;
@@ -394,8 +394,10 @@ export type CardView = Card & {
   source: StoredCard["source"];
   authorUserId?: string;
   authorPerson: Person | null;
-  viewer: { level: Role; canReview: boolean; canAsk: boolean; canComment: boolean };
+  viewer: { level: Role; canReview: boolean; canAsk: boolean; canComment: boolean; canLinkTasks?: boolean };
   comments: CommentView[];
+  /** Tasks this change is linked to (by key in the commit message, or by hand). */
+  tasks?: CardTask[];
   reports?: number;
   /** A ready question to offer in Ask Why (the pitch commit has one). */
   suggestedQuestion?: string;
@@ -448,3 +450,64 @@ export type TicketDetail = TicketSummary & {
 export type AskResult =
   | { answerable: true; answer: string }
   | { answerable: false; technicalQuestion: string; askTo: Person | null };
+
+/* ---------- tasks ---------- */
+
+export type TaskStatus = "todo" | "in_progress" | "in_review" | "done";
+export type Priority = "urgent" | "high" | "medium" | "low";
+
+/** A commit linked to a task, at the reader's level. */
+export type TaskCommit = {
+  cardId: string;
+  title: string;
+  summary: string;
+  impact: string;
+  risk: Risk;
+  status: "draft" | "approved";
+  repo: string;
+  ref: string;
+  committedAt: string;
+  authorName: string;
+};
+
+export type TaskView = {
+  id: string;
+  /** "ROS-12": used in URLs and commit messages. */
+  key: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: Priority;
+  assignee: Person | null;
+  createdBy: Person | null;
+  /** "YYYY-MM-DD" */
+  dueDate: string | null;
+  sharedWithClient: boolean;
+  /** Sort ascending within a column. */
+  order: number;
+  commitCount: number;
+  /** Latest linked commit, at the viewer's reading level: what's done so far. */
+  progress: { title: string; summary: string; committedAt: string } | null;
+  createdAt: string;
+  updatedAt: string;
+  statusChangedAt: string;
+  /** "rosetta": moved automatically by a commit. */
+  movedBy: "rosetta" | "person" | null;
+  can: { edit: boolean; move: boolean; assign: boolean; delete: boolean };
+};
+
+export type TaskDetail = TaskView & { commits: TaskCommit[] };
+
+export type TaskBoard = {
+  tasks: TaskView[];
+  /** The workspace's key prefix, e.g. "ROS". */
+  prefix: string;
+  canCreate: boolean;
+  /** Whom the viewer may assign tasks to. */
+  assignees: Person[];
+  /** Assignees to offer in the filter. */
+  people: Person[];
+};
+
+/** A task as a change lists it. */
+export type CardTask = { key: string; title: string; status: TaskStatus };

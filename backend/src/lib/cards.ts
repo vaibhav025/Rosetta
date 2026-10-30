@@ -7,6 +7,7 @@ import type { ParsedLink } from "./github-url";
 import { LEVELS } from "./levels";
 import { canReview, isTechnical, personOf } from "./org";
 import { store } from "./store";
+import { canLinkTasks } from "./tasks";
 import type { Card, Explanation, StoredCard, User } from "./types";
 
 /** One card per commit per workspace, so a commit is only explained once. */
@@ -46,7 +47,7 @@ export function demoSampleFor(repo: string, sha: string) {
  * always reads the manager version, so logging in actually means something.
  */
 export function publicCard(card: StoredCard, viewer: User, users: User[]) {
-  const { headSha: _h, reading: _r, findings: _f, createdBy: _c, approvedAt: _p, ...rest } = card;
+  const { headSha: _h, reading: _r, findings: _f, createdBy: _c, approvedAt: _p, taskIds: _t, closesTaskIds: _x, ...rest } = card;
   // Shown as the author only when they wrote it: a removed member's card stays
   // with their team for visibility (cardOwner) but isn't credited to anyone else.
   const authorUser = users.find((u) => u.id === (card.authorUserId ?? card.createdBy));
@@ -70,6 +71,7 @@ export function publicCard(card: StoredCard, viewer: User, users: User[]) {
       // The author doesn't need to ask themselves; everyone else can.
       canAsk: !reviewer,
       canComment: isTechnical(viewer.role) || reviewer,
+      canLinkTasks: canLinkTasks(viewer, card, users),
     },
     // The pitch commit offers its scripted question in Ask Why.
     ...(isPitchCommit(card.repo, card.headSha) ? { suggestedQuestion: PITCH_QUESTION.text } : {}),

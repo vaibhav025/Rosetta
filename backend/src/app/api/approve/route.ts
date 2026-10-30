@@ -1,3 +1,4 @@
+import { closeOnApproval } from "@/lib/tasks";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { editsSchema, publicCard } from "@/lib/cards";
@@ -29,6 +30,8 @@ export const POST = route(async (req) => {
   };
   await store.set("cards", cardId, approved);
   const users = await orgMembers(me.orgId);
+  // "fixes ROS-12" in its commit: reviewing it finishes the task.
+  await closeOnApproval(approved, users);
   // Their manager hears that it's been checked.
   const manager = me.managerId ? users.find((u) => u.id === me.managerId) : undefined;
   if (manager) after(() => notifications.reviewed({ orgId: me.orgId, to: manager.id, authorName: me.name, title: approved.explanation.title, cardId }));

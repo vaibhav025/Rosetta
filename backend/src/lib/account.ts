@@ -75,13 +75,16 @@ export async function removeMember(org: Org, member: StoredUser, users: StoredUs
     // Reset documents are keyed by a hash of the token, so find them by user.
     ...resets.map((r) => (r.id ? store.remove("resets", r.id) : Promise.resolve())),
   ]);
+  // Loaded here: tasks reads the org rules, which read this file.
+  const { releaseMember } = await import("./tasks");
+  await releaseMember(org.id, member.id, heir);
   if (member.inviteCode) await store.remove("invites", member.inviteCode);
   await store.remove("users", member.id);
 }
 
 /** Deletes a workspace and everything in it, including every member's account. */
 export async function deleteWorkspace(org: Org) {
-  const collections = ["users", "cards", "comments", "tickets", "notifications", "jobs", "graphs", "graph_chunks"] as const;
+  const collections = ["users", "cards", "comments", "tickets", "notifications", "jobs", "graphs", "graph_chunks", "tasks"] as const;
   const docs = await Promise.all(collections.map((c) => store.list<{ id: string; inviteCode?: string }>(c, "orgId", org.id)));
   const [users, cards] = docs;
   // Tombstones for changes the workspace deleted. Older ones don't record their id (the card id), so they stay.

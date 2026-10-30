@@ -6,7 +6,7 @@ import { store } from "./store";
  * emails, so people who don't check email still see what happened.
  */
 
-export type NotificationKind = "question" | "reply" | "report" | "change" | "reviewed" | "joined";
+export type NotificationKind = "question" | "reply" | "report" | "change" | "reviewed" | "joined" | "task";
 
 export type Notification = {
   id: string;

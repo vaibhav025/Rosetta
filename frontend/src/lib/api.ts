@@ -22,6 +22,12 @@ import type {
   Unassigned,
   Verification,
   User,
+  CardTask,
+  Priority,
+  TaskBoard,
+  TaskDetail,
+  TaskStatus,
+  TaskView,
 } from "./types";
 
 /** The backend (see backend/README.md). The app needs it running. */
@@ -220,6 +226,40 @@ export const getComments = (filters: { author?: string; team?: string } = {}) =>
   call<{ items: CommentView[] }>(`/api/comments${q(filters)}`);
 export const ask = (input: { cardId: string; nodeKey: string; question: string }) =>
   call<AskResult>("/api/ask", { method: "POST", body: input, timeoutMs: AI_TIMEOUT });
+
+/* ---------- tasks ---------- */
+
+export type TaskFilters = { assignee?: string; priority?: string; q?: string };
+export type TaskInput = {
+  title: string;
+  description?: string;
+  priority?: Priority;
+  assigneeId?: string;
+  dueDate?: string;
+  status?: TaskStatus;
+  sharedWithClient?: boolean;
+};
+export type TaskPatch = {
+  title?: string;
+  description?: string;
+  priority?: Priority;
+  assigneeId?: string | null;
+  dueDate?: string | null;
+  status?: TaskStatus;
+  order?: number;
+  sharedWithClient?: boolean;
+};
+const taskPath = (key: string) => `/api/tasks/${encodeURIComponent(key)}`;
+export const getTasks = (filters: TaskFilters = {}) => call<TaskBoard>(`/api/tasks${q(filters)}`);
+export const createTask = (input: TaskInput) => call<{ task: TaskView }>("/api/tasks", { method: "POST", body: input });
+export const getTask = (key: string) => call<{ task: TaskDetail; assignees: Person[] }>(taskPath(key));
+export const updateTask = (key: string, patch: TaskPatch) => call<{ task: TaskView }>(taskPath(key), { method: "PATCH", body: patch });
+export const deleteTask = (key: string) => call<{ ok: true }>(taskPath(key), { method: "DELETE" });
+/** Link a change to a task by its key, e.g. "ROS-12"; unlinking takes the key off it again. */
+export const linkCardTask = (cardId: string, key: string) =>
+  call<{ tasks: CardTask[] }>(`/api/cards/${encodeURIComponent(cardId)}/tasks`, { method: "POST", body: { key } });
+export const unlinkCardTask = (cardId: string, key: string) =>
+  call<{ tasks: CardTask[] }>(`/api/cards/${encodeURIComponent(cardId)}/tasks`, { method: "DELETE", body: { key } });
 
 /* ---------- questions ---------- */
 

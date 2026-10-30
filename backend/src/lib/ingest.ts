@@ -12,6 +12,7 @@ import { ApiError } from "./http";
 import { sendNewChange } from "./mail";
 import { notifications } from "./notify";
 import { store } from "./store";
+import { linkFromMessage } from "./tasks";
 import { evidenceFor, needsReview, RETRY_BELOW, verify } from "./verify";
 import type { Explanation, Org, StoredCard, User } from "./types";
 
@@ -168,8 +169,10 @@ export async function ingestLink(
   // A merge repeats work already explained commit by commit.
   if (opts.skipMerges && (change.parents ?? 0) > 1) throw new SkipChange("merge commit");
   const prepared = await prepareWithImpact(change, org);
-  const card = toCard(id, org, prepared, await explanationFor(prepared, undefined, org.id), users, { source, authorUserId: opts.authorUserId });
-  await store.set("cards", id, card);
+  const made = toCard(id, org, prepared, await explanationFor(prepared, undefined, org.id), users, { source, authorUserId: opts.authorUserId });
+  await store.set("cards", id, made);
+  // "ROS-12: …" in the message links the task and moves it along.
+  const card = await linkFromMessage(org, made, change.message, users);
   const author = users.find((u) => u.id === card.authorUserId);
   const automatic = AUTOMATIC.includes(source);
   // The engineer hears that their push is ready to check before anyone relies on it.

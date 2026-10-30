@@ -31,6 +31,7 @@ export function tabsFor(role: Role): { href: string; label: string }[] {
       { href: "/app", label: "Overview" },
       { href: "/app/digest", label: "This week" },
       { href: "/app/updates", label: "Engineer updates" },
+      { href: "/app/tasks", label: "Tasks" },
       { href: "/app/questions", label: "Questions" },
       { href: "/app/team", label: "Organisation" },
     ];
@@ -39,12 +40,14 @@ export function tabsFor(role: Role): { href: string; label: string }[] {
       { href: "/app", label: "Team activity" },
       { href: "/app/digest", label: "This week" },
       { href: "/app/updates", label: "Engineer updates" },
+      { href: "/app/tasks", label: "Tasks" },
       { href: "/app/questions", label: "Questions" },
       { href: "/app/team", label: "My team" },
     ];
   if (role === "client")
     return [
       { href: "/app", label: "Updates" },
+      { href: "/app/tasks", label: "Tasks" },
       { href: "/app/digest", label: "This week" },
       { href: "/app/questions", label: "Questions" },
     ];

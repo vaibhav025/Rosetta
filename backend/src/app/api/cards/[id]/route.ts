@@ -1,3 +1,4 @@
+import { cardTasks, forgetCard } from "@/lib/tasks";
 import { requireUser } from "@/lib/auth";
 import { publicCard } from "@/lib/cards";
 import { ApiError, json, preflight, route } from "@/lib/http";
@@ -44,7 +45,7 @@ export const GET = route<Ctx>(async (req, { params }) => {
       };
     });
 
-  return json({ ...publicCard(card, me, users), comments });
+  return json({ ...publicCard(card, me, users), comments, tasks: await cardTasks(card, me, users) });
 });
 
 /**
@@ -72,6 +73,7 @@ export const DELETE = route<Ctx>(async (req, { params }) => {
     ...comments.map((c) => store.remove("comments", c.id)),
     ...notes.filter((n) => n.href === `/app/c/${id}`).map((n) => store.remove("notifications", n.id)),
   ]);
+  await forgetCard(card);
   await store.set("deleted", id, { id, orgId: me.orgId, repo: card.repo, by: me.id, at: new Date().toISOString() });
   return json({ deleted: id });
 });

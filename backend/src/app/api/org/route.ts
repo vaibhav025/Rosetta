@@ -1,3 +1,5 @@
+import { prefixOf } from "@/lib/tasks";
+import { PREFIX } from "@/lib/task-keys";
 import { after } from "next/server";
 import { buildLatest, dropGraph } from "@/lib/codegraph";
 import { z } from "zod";
@@ -28,6 +30,8 @@ const branchName = z
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
+  /** Task keys start with this: "ROS" for ROS-12. Tasks made before keep their keys. */
+  taskPrefix: z.string().trim().toUpperCase().regex(PREFIX, "Use 2 to 6 letters or digits, starting with a letter, like ROS.").optional(),
   repos: z.array(repoName).max(20).optional(),
   /** Branches to explain per repo; an empty list means the default branch only. */
   branches: z.record(repoName, z.array(branchName).max(10)).optional(),
@@ -70,6 +74,7 @@ export const PATCH = route(async (req) => {
   const next: Org = {
     ...org,
     ...(patch.name ? { name: patch.name } : {}),
+    ...(patch.taskPrefix ? { taskPrefix: patch.taskPrefix } : {}),
     repos,
     branches,
   };
@@ -83,5 +88,5 @@ export const PATCH = route(async (req) => {
       for (const r of added) await buildLatest(org, r);
     });
   }
-  return json({ org: { id: next.id, name: next.name, repos: next.repos, branches: next.branches ?? {} } });
+  return json({ org: { id: next.id, name: next.name, repos: next.repos, branches: next.branches ?? {}, taskPrefix: prefixOf(next) } });
 });

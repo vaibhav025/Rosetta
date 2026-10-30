@@ -177,6 +177,10 @@ export type Org = {
   /** When the GitHub App last sent this workspace an event, and which. */
   lastWebhookAt?: string;
   lastWebhookEvent?: string;
+  /** Task keys start with this ("ROS" for ROS-12). Missing: taken from the workspace name. */
+  taskPrefix?: string;
+  /** The number of the last task made. */
+  taskCounter?: number;
   createdAt: string;
 };
 
@@ -195,6 +199,9 @@ export type StoredCard = Card & {
   approvedAt?: string;
   /** How many times readers reported a mistake in this explanation. */
   reports?: number;
+  /** Tasks it's linked to (lib/tasks), and those its commit message says it closes. */
+  taskIds?: string[];
+  closesTaskIds?: string[];
 };
 
 /** Text written once and stored at every reading level. */

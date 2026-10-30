@@ -15,9 +15,10 @@ const DOT: Record<NotificationItem["kind"], string> = {
   change: "bg-(--risk-low)",
   reviewed: "bg-(--risk-low)",
   joined: "bg-fg-1",
+  task: "bg-accent-ink",
 };
 
-/** The bell: questions, replies, reports and new changes, for people who don't live in email. */
+/** The bell: questions, replies, reports, new changes and task moves, for people who don't live in email. */
 export function NotificationBell() {
   const router = useRouter();
   const pathname = usePathname();
@@ -88,7 +89,7 @@ export function NotificationBell() {
               )}
             </div>
             {items.length === 0 ? (
-              <p className="px-3 pt-1 pb-4 t-small text-fg-3">Nothing yet. Questions, replies and new changes show up here.</p>
+              <p className="px-3 pt-1 pb-4 t-small text-fg-3">Nothing yet. Questions, replies, new changes and task moves show up here.</p>
             ) : (
               <div className="max-h-[60svh] overflow-y-auto">
                 {items.map((n) => (

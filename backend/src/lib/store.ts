@@ -23,7 +23,8 @@ export type Collection =
   | "deleted"
   | "jobs"
   | "graphs"
-  | "graph_chunks";
+  | "graph_chunks"
+  | "tasks";
 
 interface Store {
   get<T>(collection: Collection, id: string): Promise<T | null>;
