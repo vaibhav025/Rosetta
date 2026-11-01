@@ -35,7 +35,20 @@ Manager, client and CMO can also read everything in **Hinglish**.
 **A workspace that follows your org chart**
 - A CMO or manager creates the workspace and adds people: CMO → managers → engineers, senior developers and interns; clients sit under their manager.
 - Each person sees only what their role allows: engineers their own work, managers their team, the CMO everything.
-- New commits arrive by themselves from watched repositories (GitHub webhook, or a sync every few minutes).
+- New commits arrive by themselves from watched repositories: the company installs the Rosetta **GitHub App** once (private repos too), and every `git push` is explained and lands with the right manager. No link to paste.
+
+**Beyond the diff: what a change reaches**
+- When a repository is first watched, Rosetta maps it once: every source file's imports and top-level functions and classes (names and paths only, never code). Each new commit moves that map forward.
+- A commit is measured against the map: which functions it touched, added or removed, which files use them directly, which depend on those a few steps out, and which files still use something the change **removed**.
+- The card shows **What else this touches**: a picture of the files that rely on the change, plus the lists. Engineers read the file names; managers, clients and the CMO get "how many other parts rely on this".
+- The same facts go to the explainer and the checker, so a 5-line change to a shared function is rated and described for what it really reaches. A wide reach raises the risk; something still using a removed function marks it high.
+- JavaScript and TypeScript (with tsconfig path aliases), Python, Go, Java and Kotlin, Ruby, PHP, C and C++, and Rust.
+
+**Tasks, linked to the code**
+- A board (To do, In progress, In review, Done) with drag and drop, filters, priority and due dates. Engineers move their own tasks, managers assign and reprioritise their team's, the CMO reads everything, and clients see only tasks shared with them.
+- Put the task's key in a commit message (`CL-12: rotate requests`) and Rosetta links the two: the first commit moves it to **In progress**, a pull request to **In review**, and "fixes CL-12" plus the engineer's review of the explanation to **Done**. Tasks only move forward on their own, and the lead is told when Rosetta moves one.
+- Each task shows what has actually been done on it, at the reader's own level: the engineer reads function names, the manager reads impact and risk, the CMO reads customers and growth. Nobody writes status updates.
+- A change can also be linked or unlinked by hand. A key that looks like the workspace's but matches no task is reported to the engineer, never guessed.
 
 **Conversations across roles**
 - **Ask Why** on any step: answered from the code, or sent to the engineer with a technical version of the question.
@@ -56,9 +69,11 @@ Manager, client and CMO can also read everything in **Hinglish**.
 
 ```mermaid
 flowchart LR
-  A[Engineer pushes a commit] --> B[GitHub webhook or sync]
-  B --> C[Backend reads the diff from GitHub]
-  C --> D[Gemini writes six versions + flowchart]
+  A[Engineer pushes a commit] --> B[GitHub App webhook, or sync]
+  B --> Q[Explain queue: one job per commit]
+  Q --> C[Backend reads the diff from GitHub]
+  C --> M[Repository map: what else does it reach?]
+  M --> D[Gemini writes six versions + flowchart]
   D --> E{Code rules + second model<br/>score at least 75?}
   E -- no --> F[Rewrite once with feedback] --> E2{Still under 75?}
   E2 -- yes --> G[Saved, flagged for engineer review]
@@ -67,11 +82,13 @@ flowchart LR
   H --> I[Each reader sees their version]
   G --> I
   I --> J[Questions go to the engineer, answers come back rewritten]
+  H --> T[A task key in the message links the task and moves it]
 ```
 
 - **Frontend** (`frontend/`): Next.js 16, React 19, Tailwind CSS 4, Mermaid for flowcharts, Base UI, Motion. Talks only to the backend.
-- **Backend** (`backend/`): an API-only Next.js 16 app. Every key lives here. Gemini explains; Groq (or OpenRouter) checks explanations, answers Ask Why and rewrites messages, and steps in when Gemini is unavailable. Data is stored in Firestore, or in a local JSON file when Firebase isn't configured.
-- Full diffs aren't stored: only the explanation and a few lines behind each flowchart step.
+- **Backend** (`backend/`): an API-only Next.js 16 app. Every key lives here. Gemini explains; Groq (or OpenRouter) checks explanations, answers Ask Why and rewrites messages, and steps in when Gemini is unavailable. Data is stored in Firestore (over REST), or in a local JSON file when Firebase isn't configured.
+- **GitHub App**: signs a short-lived JWT with its private key, trades it for an hour-long installation token, and reads private repos with that, never a person's token. Each push becomes one deduplicated job (retried with backoff, waiting out a used-up AI quota).
+- Full diffs and source code aren't stored: only the explanation, a few lines behind each flowchart step, and the repository map (file paths, names and imports).
 
 ## Quick start
 
@@ -95,20 +112,40 @@ npm run dev
 
 Open http://localhost:3000, create a workspace as a CMO or manager, then press **Add a sample team**. Every sample person can log in with the email and the random password shown once in the result, so you can see each role's view.
 
+### Pushes from your own repository, on localhost
+
+GitHub can't reach `localhost`, so a relay forwards its webhooks. With the GitHub App created and its keys in `backend/.env` ([DEPLOY.md](DEPLOY.md), step 4), keep three terminals open:
+
+```bash
+# 1. backend
+cd backend && npm run dev
+
+# 2. frontend
+cd frontend && npm run dev
+
+# 3. webhook relay (any folder): open https://smee.io, start a channel, set it as the App's Webhook URL
+npx smee-client --url https://smee.io/<your-channel> --target http://localhost:4000/api/webhooks/github-app
+```
+
+Then, as the owner, open **Organisation → Connect GitHub**, install the App and tick the repositories to watch. Everyone who pushes links their GitHub account on their profile; commits nobody matches wait under **Unassigned commits** for a lead. After that, a push to a watched repository's default branch reaches the feed in under a minute. On a deployed backend the Webhook URL is simply `https://<backend>/api/webhooks/github-app` and no relay is needed.
+
 ## Configuration
 
 Add keys to `backend/.env.local` as you need them:
 
 | Key | Unlocks |
 | --- | --- |
-| `GEMINI_API_KEY` | Explaining any commit |
+| `GEMINI_API_KEY` · `GEMINI_MODEL` | Explaining any commit; the model's name (default `gemini-3.8-flash`) |
 | `FALLBACK_API_KEY` | Groq or OpenRouter: checking explanations, Ask Why, rewriting messages, backup for Gemini |
-| `GITHUB_TOKEN` | More than 60 GitHub requests an hour, repository sync |
+| `GITHUB_TOKEN` | More than 60 GitHub requests an hour, public repository sync |
+| `GITHUB_APP_ID` · `GITHUB_APP_SLUG` · `GITHUB_APP_PRIVATE_KEY` · `GITHUB_APP_WEBHOOK_SECRET` | The GitHub App: pushes explained by themselves, private repos included. `GITHUB_APP_SLUG` is the name in `github.com/apps/<slug>` |
+| `GITHUB_APP_CLIENT_ID` · `GITHUB_APP_CLIENT_SECRET` | "Link your GitHub account", so pushes are matched to the right person |
+| `QSTASH_*` · `PUBLIC_API_URL` | Optional: run the explain queue through Upstash QStash |
 | `FIREBASE_PROJECT_ID` · `FIREBASE_CLIENT_EMAIL` · `FIREBASE_PRIVATE_KEY` | Firestore instead of the local file (required in production) |
 | `SESSION_SECRET` | Signs login tokens (required in production) |
 | `SMTP_USER` · `SMTP_PASS` | Email, Gmail by default |
 | `ALLOWED_ORIGINS` · `APP_URL` | The frontend's address, for CORS and email links |
-| `CRON_SECRET` | The Monday weekly report email |
+| `CRON_SECRET` | The Monday weekly report email, and the daily run of the explain queue |
 
 The frontend reads `NEXT_PUBLIC_API_BASE` (defaults to `http://localhost:4000`). Every option is documented in [`backend/.env.example`](backend/.env.example) and [`frontend/.env.example`](frontend/.env.example).
 
@@ -116,7 +153,7 @@ The frontend reads `NEXT_PUBLIC_API_BASE` (defaults to `http://localhost:4000`).
 
 | Where | Command | Does |
 | --- | --- | --- |
-| backend | `npm run build && npm test` | API tests on an isolated server (throwaway store, no AI, no email), plus unit tests for the verifier and message rewriting |
+| backend | `npm run build && npm test` | API tests on an isolated server (throwaway store, no AI, no email, a fake GitHub for the App), plus unit tests for the verifier, message rewriting, the repository map and task keys |
 | backend | `npm run demo -- <api-url>` | Creates a ready-to-show workspace with every role and prints the logins |
 | backend | `npm run migrate` | Copies local data into Firestore (dry run first, `-- --write` to copy) |
 | backend | `npm run pitch:judge` | Re-scores the pitch commit's explanation with the real judge model |
@@ -135,20 +172,22 @@ Paste it as an engineer, then log in as their manager to see it arrive, ask a qu
 
 ## Deploying
 
-Two Vercel projects (`backend/` and `frontend/`), Firestore, and an optional GitHub webhook. Step by step in [DEPLOY.md](DEPLOY.md).
+Two Vercel projects (`backend/` and `frontend/`), Firestore, and the GitHub App. Step by step in [DEPLOY.md](DEPLOY.md).
 
 ## Project layout
 
 ```
 backend/
   src/app/api/       API routes (auth, team, feed, explain, cards, tickets, digest, ...)
-  src/lib/           AI tasks and verifier, GitHub, store, email, roles and visibility
+  src/lib/           AI tasks and verifier, GitHub and the GitHub App, explain queue, store, email, roles and visibility
+  src/lib/codegraph/ The repository map: parse files, resolve imports, measure what a change reaches
+  src/lib/tasks.ts   Tasks: who sees and moves what, and how commits link and move them
   src/lib/demo/      Sample commits, sample team, the pitch commit and its script
   test/              API and unit tests (npm test)
   scripts/           demo, migrate, pitch:judge
 frontend/
   src/app/           Pages: landing, auth, the app (/app/...), legal pages
-  src/components/    Flowchart, card view, Ask Why, feeds, dashboards, consent, ...
+  src/components/    Flowchart, card view, impact picture, tasks board, Ask Why, feeds, dashboards, consent, ...
   src/lib/           API client, session, roles, legal details, consent
 DEPLOY.md            Deploying, and the pitch walkthrough
 ```
@@ -160,7 +199,9 @@ More detail: [backend/README.md](backend/README.md) (every API route, how data f
 - **AI and your code.** Explaining a change sends its diff to the AI provider. Rosetta currently uses Gemini's free tier, under which Google may use submitted content to improve its products. Use a paid tier before connecting private or confidential code. Details in the Privacy Policy (`/privacy`) and [backend/README.md](backend/README.md#before-real-customers-ai-providers-and-their-data).
 - **AI can be wrong.** Every explanation is scored and reviewed by its engineer, but check anything important.
 - **Legal pages are templates.** Business details in `frontend/src/lib/legal.ts` are placeholders to fill in, and the pages need review by a lawyer before launch.
-- **Free tiers.** Gemini's free tier allows about 20 explanations a day; leads can see today's usage on the Organisation page.
+- **Free tiers.** Gemini's free tier allows about 20 explanations a day, and a workspace gets a quarter of that by default (`AI_ORG_DAILY_SHARE`); commits over it wait for the reset. Leads can see today's usage on the Organisation page.
+- **The repository map reads imports, not a compiler.** It follows `import`, `require`, `from ... import`, `#include` and the like, so computed or runtime imports aren't seen. It stops at 8,000 source files, skips files over 300 KB, and a repository over 80 MB compressed gets no map (explanations carry on without it). Fine for judging reach, not a guarantee that nothing else is affected.
+- **Rate limits and the queue are per server.** Fine for one instance; use a shared store before running several.
 
 ## Licence
 

@@ -28,7 +28,8 @@ npm install && npm run dev                       # http://localhost:3000
 | `/` | everyone | What Rosetta is, the slider demo, the detailed flowchart with its worked example, how changes reach people, pricing |
 | `/signup` · `/join` · `/login` · `/forgot` · `/reset` | | Create a workspace (CMO or manager) · join with an invite code · log in · reset a password by email |
 | `/app` | by role | Engineer and intern: **My work** (their changes, questions for them). Manager: **Team activity** (team changes filtered by engineer, stats, engineers' latest comments, check in with anyone). CMO: **Overview** (teams, then changes filtered by team or person). Client: reviewed **Updates** |
-| `/app/c/[id]` | can see it | One change at the reader's own level: confidence badge ("Checked against the code: High (92/100)"), story, engineers' comments, "How it works" flowchart with before/after and a step-through example. Selecting a box shows the code behind it and opens Ask Why; "This step looks wrong" reports it to the author. The author reviews it, previewing all six versions |
+| `/app/c/[id]` | can see it | One change at the reader's own level: confidence badge ("Checked against the code: High (92/100)"), the tasks it's linked to (key, title, status; engineers and leads can **Link to task** or unlink), story, engineers' comments, "How it works" flowchart with before/after and a step-through example. Selecting a box shows the code behind it and opens Ask Why; "This step looks wrong" reports it to the author. **What else this touches**: how far the change reaches in the repository, as a picture of the files that rely on it (engineers and leads) or a plain count (everyone else), with a warning when something still uses what the change removed. The author reviews it, previewing all six versions |
+| `/app/tasks` · `/app/tasks/[key]` | everyone | **Tasks**: a board of To do, In progress, In review and Done with drag and drop (and a "Move to..." menu for keyboard and touch), filters by person, priority and text, and a New task form. Each card shows key, priority, due date, assignee, commit count and what's been done so far, at the reader's level; "Moved by Rosetta" marks tasks a commit moved. A task's page edits its details where allowed and lists its linked commits, newest first |
 | `/app/digest` | leads, clients | **This week**: headline, what changed, what needs attention, who shipped what. Save as PDF. Leads also preview and send the **weekly report email** (per engineer, every flowchart, written for the owner) |
 | `/app/updates` | leads | Every change engineers push and their comments (Rosetta and GitHub), newest first, by engineer, team or kind |
 | `/app/questions` · `/app/questions/[id]` | everyone | Questions asked of me / by me; threads rewritten for each reader |
@@ -43,8 +44,11 @@ Every signed-in page has the notification bell. Feeds have search (in the reader
 - `src/components/flowchart.tsx`: `FlowDiagram` (JSON → Mermaid with shapes, groups and edge labels; path highlighting) and `HowItWorks` (before/after + walkthrough)
 - `src/components/dashboards.tsx`: the per-role homes; `feed.tsx`: feed cards, search and filters
 - `src/components/github.tsx`: connect GitHub, repository and branch picker, push status, unmatched pushes; `src/lib/github-app.ts`: the ?github= return messages
+- `src/components/board.tsx` · `task-view.tsx` · `src/lib/tasks.ts`: the tasks board (drag and drop, optimistic moves), a task's page, and the helpers for ordering and due dates
+- `src/components/impact.tsx`: "What else this touches" and its picture of changed, direct and further-out files
+- `src/components/ribbon-field.tsx`: the animated background; it draws at 30 fps on the landing page and holds still inside the app once settled, so glass cards aren't re-blurred every frame
 - `src/components/confidence.tsx` · `evidence.tsx`: the verification badge and the code behind each step
-- `src/components/notification-bell.tsx` · `digest.tsx`: the bell and the weekly page
+- `src/components/notification-bell.tsx` · `digest.tsx`: the bell (including "Rosetta moved a task") and the weekly page
 - `src/lib/roles.ts`: roles, tabs per role
 - `src/lib/api.ts`: every backend call; `src/lib/session.tsx`: login state
 - `src/lib/mock/samples.ts`: the demo commits (shared with the backend), used on the landing page
